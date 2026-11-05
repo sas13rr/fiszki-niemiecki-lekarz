@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Fiszki - Kapitel 5 Gesundheit</title>
 <style>
   * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
@@ -26,10 +26,71 @@
   .btn-hard { background: #e11d48; }
   .btn-ok { background: #16a34a; }
   .btn-nav { background: #334155; font-size: 13px; padding: 12px; }
+
+  .tabs { display: flex; width: 100%; max-width: 420px; gap: 8px; margin-bottom: 12px; }
+  .tab { flex: 1; background: #1e293b; border: 1px solid #334155; padding: 12px; font-size: 14px; }
+  .tab.active { background: #0284c7; border-color: #0284c7; }
+  .view { display: flex; flex-direction: column; align-items: center; justify-content: space-between; width: 100%; flex: 1; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 10px; }
+  .chip { background: #1e293b; border: 1px solid #334155; color: #cbd5e1; padding: 8px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+  .chip.on { background: #0284c7; border-color: #0284c7; color: #fff; }
+  #quizBox { width: 100%; max-width: 420px; flex: 1; display: flex; flex-direction: column; justify-content: flex-start; margin-top: 6px; }
+  .qprog { height: 6px; background: #1e293b; border-radius: 6px; overflow: hidden; margin-bottom: 8px; }
+  .qbar { height: 100%; background: #38bdf8; transition: width 0.3s; }
+  .qmeta { display: flex; justify-content: space-between; font-size: 13px; color: #94a3b8; padding: 0 4px; margin-bottom: 12px; }
+  .qcard { position: relative; background: #1e293b; border: 1px solid #334155; border-radius: 24px; padding: 48px 20px 28px; text-align: center; margin-bottom: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
+  .qcard .badge { left: 50%; transform: translateX(-50%); }
+  .opts { display: grid; gap: 10px; }
+  .opt { background: #1e293b; border: 1px solid #334155; text-align: left; font-size: 16px; padding: 14px 16px; }
+  .opt.correct { background: #16a34a; border-color: #16a34a; }
+  .opt.wrong { background: #e11d48; border-color: #e11d48; }
+  .opt.locked { cursor: default; }
+  .btn-next { background: #0284c7; width: 100%; margin-top: 14px; }
+  .result { text-align: center; padding: 30px 10px; }
+  .result .big { font-size: 56px; font-weight: 800; }
+  .result .msg { color: #cbd5e1; margin: 8px 0 22px; font-size: 16px; }
+  .result button { width: 100%; margin-bottom: 10px; }
+  .tab { font-size: 13px; padding: 12px 6px; }
+  #writeBox { width: 100%; max-width: 420px; flex: 1; display: flex; flex-direction: column; justify-content: flex-start; margin-top: 6px; }
+  #wInput { width: 100%; padding: 14px; border-radius: 14px; border: 2px solid #334155; background: #1e293b; color: #fff; font-size: 18px; outline: none; }
+  #wInput:focus { border-color: #38bdf8; }
+  #wInput.ok { border-color: #16a34a; }
+  #wInput.bad { border-color: #e11d48; }
+  .chars { display: flex; gap: 8px; margin: 10px 0; }
+  .chars button { flex: 1; background: #334155; padding: 10px; font-size: 18px; }
+  .wbtns { display: grid; grid-template-columns: 1fr 1fr 1.3fr; gap: 8px; }
+  .wbtns button { padding: 13px 6px; font-size: 14px; }
+  .btn-hint { background: #d97706; }
+  .btn-skip { background: #475569; }
+  .btn-check { background: #0284c7; }
+  .fb { margin-top: 14px; padding: 14px; border-radius: 14px; font-size: 16px; line-height: 1.5; }
+  .fb.good { background: rgba(22,163,74,0.2); border: 1px solid #16a34a; }
+  .fb.miss { background: rgba(225,29,72,0.2); border: 1px solid #e11d48; }
+  .fb .ans { font-size: 20px; font-weight: 700; margin-top: 4px; }
+  .hintline { font-family: ui-monospace, Menlo, Consolas, monospace; letter-spacing: 2px; font-size: 18px; color: #fbbf24; min-height: 24px; margin-top: 12px; }
+  body { padding-top: calc(16px + env(safe-area-inset-top, 0px)); padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
+  .tab { font-size: 12px; padding: 12px 2px; }
+  .tabs { gap: 6px; }
+  #testBox { width: 100%; max-width: 420px; flex: 1; display: flex; flex-direction: column; justify-content: flex-start; margin-top: 6px; }
+  .tnav { display: grid; grid-template-columns: 1fr 1.6fr; gap: 8px; margin-top: 12px; }
+  .tnav button:disabled { opacity: 0.35; }
+  .rev { text-align: left; background: #1e293b; border: 1px solid #334155; border-radius: 14px; padding: 12px 14px; margin-bottom: 8px; }
+  .rev .pl { color: #94a3b8; font-size: 13px; }
+  .rev .good { color: #4ade80; font-weight: 700; font-size: 17px; }
+  .rev .bad { color: #fb7185; font-size: 14px; }
+  .revlist { margin: 16px 0 6px; text-align: left; font-weight: 700; }
 </style>
 </head>
 <body>
 
+<div class="tabs">
+  <button class="tab active" id="tabFlash" onclick="setMode('flash')">🃏 Fiszki</button>
+  <button class="tab" id="tabQuiz" onclick="setMode('quiz')">✅ ABCD</button>
+  <button class="tab" id="tabWrite" onclick="setMode('write')">✍️ Pisanie</button>
+  <button class="tab" id="tabTest" onclick="setMode('test')">📝 Test</button>
+</div>
+
+<div class="view" id="flashView">
 <div class="header">
   <select id="lessonSelect" onchange="filterDeck()">
     <option value="all">Wszystkie lekcje (81 słówek)</option>
@@ -65,6 +126,46 @@
   <button class="btn-ok" onclick="markCard(true)">Umiem!</button>
   <button class="btn-nav" onclick="prevCard()">← Poprzednia</button>
   <button class="btn-nav" onclick="shuffleDeck()">🔀 Wymieszaj</button>
+</div>
+</div>
+
+<div class="view" id="quizView" style="display:none">
+  <div class="header">
+    <div class="chips chipsBox"></div>
+    <select class="limitSel" onchange="setLimit(this.value)">
+      <option value="all">Wszystkie słówka z wybranych lekcji</option>
+      <option value="25">🎲 Wylosuj 25 słówek (jak na kartkówce)</option>
+      <option value="10">🎲 Wylosuj 10 słówek</option>
+      <option value="50">🎲 Wylosuj 50 słówek</option>
+    </select>
+  </div>
+  <div id="quizBox"></div>
+</div>
+
+<div class="view" id="writeView" style="display:none">
+  <div class="header">
+    <div class="chips chipsBox"></div>
+    <select class="limitSel" onchange="setLimit(this.value)">
+      <option value="all">Wszystkie słówka z wybranych lekcji</option>
+      <option value="25">🎲 Wylosuj 25 słówek (jak na kartkówce)</option>
+      <option value="10">🎲 Wylosuj 10 słówek</option>
+      <option value="50">🎲 Wylosuj 50 słówek</option>
+    </select>
+  </div>
+  <div id="writeBox"></div>
+</div>
+
+<div class="view" id="testView" style="display:none">
+  <div class="header">
+    <div class="chips chipsBox"></div>
+    <select id="testCount" onchange="startTest()">
+      <option value="10">10 słówek</option>
+      <option value="25" selected>25 słówek (jak na kartkówce)</option>
+      <option value="50">50 słówek</option>
+      <option value="all">Wszystkie z wybranych lekcji</option>
+    </select>
+  </div>
+  <div id="testBox"></div>
 </div>
 
 <script>
@@ -200,6 +301,7 @@ function markCard(known) {
   const current = deck[index];
   if (!known) hardWords.add(current);
   else hardWords.delete(current);
+  saveHard();
   index = (index + 1) % deck.length;
   renderCard();
 }
@@ -226,6 +328,399 @@ function filterDeck() {
 }
 
 renderCard();
+
+// ================= QUIZ =================
+let quizSel = new Set(['1','2','3','4']);
+let qList = [], qi = 0, qScore = 0, qWrong = [], qOpts = [], qAnswered = false;
+
+function shuffleArr(a) {
+  a = [...a];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+let curMode = "flash";
+function restartMode() { if (curMode === "write") startWrite(); else if (curMode === "test") startTest(); else startQuiz(); }
+
+function setMode(m) {
+  curMode = m;
+  for (const v of ["flash", "quiz", "write", "test"]) {
+    document.getElementById(v + "View").style.display = v === m ? "flex" : "none";
+    document.getElementById("tab" + v[0].toUpperCase() + v.slice(1)).classList.toggle("active", v === m);
+  }
+  if (m === "quiz") { renderChips(); startQuiz(); }
+  else if (m === "write") { renderChips(); startWrite(); }
+  else if (m === "test") { renderChips(); startTest(); }
+  else {
+    document.getElementById("hardCount").innerText = `Do powtórki: ${hardWords.size}`;
+    if (document.getElementById("lessonSelect").value === "hard") filterDeck();
+  }
+}
+
+function quizPool() {
+  const set = new Set();
+  allWords.forEach(w => { if (quizSel.has(String(w.l))) set.add(w); });
+  if (quizSel.has("hard")) hardWords.forEach(w => set.add(w));
+  return Array.from(set);
+}
+
+function renderChips() {
+  const names = {1: "Lekcja 1", 2: "Lekcja 2", 3: "Lekcja 3", 4: "Lekcja 4"};
+  const allOn = ['1','2','3','4'].every(k => quizSel.has(k));
+  let html = `<button class="chip ${allOn ? 'on' : ''}" onclick="selectAllLessons()">Wszystkie (${allWords.length})</button>`;
+  for (const k of ['1','2','3','4']) {
+    const n = allWords.filter(w => w.l == k).length;
+    html += `<button class="chip ${quizSel.has(k) ? 'on' : ''}" onclick="toggleChip('${k}')">${names[k]} (${n})</button>`;
+  }
+  html += `<button class="chip ${quizSel.has('hard') ? 'on' : ''}" onclick="toggleChip('hard')">Trudne (${hardWords.size})</button>`;
+  document.querySelectorAll(".chipsBox").forEach(el => el.innerHTML = html);
+}
+
+function toggleChip(k) {
+  if (quizSel.has(k)) {
+    if (quizSel.size === 1) return; // zawsze coś musi być wybrane
+    quizSel.delete(k);
+  } else quizSel.add(k);
+  renderChips();
+  restartMode();
+}
+
+function selectAllLessons() {
+  quizSel = new Set(['1','2','3','4']);
+  renderChips();
+  restartMode();
+}
+
+let limitN = "all";
+function setLimit(v) {
+  limitN = v;
+  document.querySelectorAll(".limitSel").forEach(el => el.value = v);
+  restartMode();
+}
+function limitedPool() {
+  let pool = shuffleArr(quizPool());
+  if (limitN !== "all") {
+    const seen = new Set();
+    pool = pool.filter(w => !seen.has(w.pl) && seen.add(w.pl)).slice(0, parseInt(limitN, 10));
+  }
+  return pool;
+}
+
+function startQuiz(list) {
+  qList = list ? shuffleArr(list) : limitedPool();
+  qi = 0; qScore = 0; qWrong = [];
+  renderQuiz();
+}
+
+function wordType(t) {
+  if (/^(der|die|das) /.test(t)) return "n";
+  if (t.includes(" ")) return "p";
+  return "o";
+}
+
+function makeOptions(item) {
+  const seen = new Set([item.de]);
+  const same = [], other = [];
+  for (const c of shuffleArr(allWords)) {
+    if (c.pl === item.pl || seen.has(c.de)) continue;
+    seen.add(c.de);
+    (wordType(c.de) === wordType(item.de) ? same : other).push(c.de);
+  }
+  const wrong = [...same, ...other].slice(0, 3);
+  return shuffleArr([item.de, ...wrong]);
+}
+
+function renderQuiz() {
+  const box = document.getElementById("quizBox");
+  if (qList.length === 0) {
+    box.innerHTML = `<div class="result"><div class="msg">Brak słówek w tym wyborze. Wybierz inną lekcję u góry.</div></div>`;
+    return;
+  }
+  if (qi >= qList.length) { renderResult(); return; }
+  const item = qList[qi];
+  qOpts = makeOptions(item);
+  qAnswered = false;
+  const letters = ["A", "B", "C", "D"];
+  box.innerHTML = `
+    <div class="qprog"><div class="qbar" style="width:${(qi / qList.length) * 100}%"></div></div>
+    <div class="qmeta"><span>Pytanie ${qi + 1} / ${qList.length}</span><span>Wynik: ${qScore}</span></div>
+    <div class="qcard"><div class="badge">Lektion ${item.l}</div><div class="word">${item.pl}</div><div class="sub">Wybierz niemiecki odpowiednik</div></div>
+    <div class="opts">
+      ${qOpts.map((o, i) => `<button class="opt" id="opt${i}" onclick="answerQuiz(${i})"><b>${letters[i]}.</b> ${formatGerman(o)}</button>`).join("")}
+    </div>
+    <div id="nextWrap"></div>`;
+}
+
+function answerQuiz(i) {
+  if (qAnswered) return;
+  qAnswered = true;
+  const item = qList[qi];
+  const correctIdx = qOpts.indexOf(item.de);
+  document.querySelectorAll(".opt").forEach(b => b.classList.add("locked"));
+  document.getElementById("opt" + correctIdx).classList.add("correct");
+  if (i === correctIdx) {
+    qScore++;
+  } else {
+    document.getElementById("opt" + i).classList.add("wrong");
+    qWrong.push(item);
+    hardWords.add(item); // błędne trafiają do "Do powtórki" w fiszkach
+    saveHard();
+  }
+  const last = qi + 1 >= qList.length;
+  document.getElementById("nextWrap").innerHTML =
+    `<button class="btn-next" onclick="nextQuiz()">${last ? "Zobacz wynik" : "Dalej →"}</button>`;
+}
+
+function nextQuiz() { qi++; renderQuiz(); }
+
+function renderResult() {
+  const pct = Math.round((qScore / qList.length) * 100);
+  const msg = pct === 100 ? "Perfekt! 🎉" : pct >= 80 ? "Świetnie! 💪" : pct >= 50 ? "Nieźle, jeszcze trochę powtórki." : "Warto jeszcze przejrzeć fiszki.";
+  document.getElementById("quizBox").innerHTML = `
+    <div class="result">
+      <div class="big">${qScore} / ${qList.length}</div>
+      <div class="msg">${pct}% — ${msg}</div>
+      ${qWrong.length ? `<button class="btn-hard" onclick="startQuiz(qWrong)">Powtórz błędne (${qWrong.length})</button>` : ""}
+      <button class="btn-ok" onclick="startQuiz()">Jeszcze raz (nowe losowanie)</button>
+      <button class="btn-nav" onclick="setMode('flash')">Wróć do fiszek</button>
+    </div>`;
+  renderChips();
+}
+
+// ================= TRYB PISANIA (jak na kartkówce: PL -> DE) =================
+const HARD_KEY = "fiszki_hard_v1";
+function wkey(w) { return w.pl + "||" + w.de; }
+function saveHard() {
+  try { localStorage.setItem(HARD_KEY, JSON.stringify(Array.from(hardWords).map(wkey))); } catch (e) {}
+}
+function loadHard() {
+  try {
+    const keys = JSON.parse(localStorage.getItem(HARD_KEY) || "[]");
+    allWords.forEach(w => { if (keys.includes(wkey(w))) hardWords.add(w); });
+    document.getElementById("hardCount").innerText = `Do powtórki: ${hardWords.size}`;
+  } catch (e) {}
+}
+loadHard();
+
+let wQueue = [], wTotal = 0, wDone = 0, wMistakes = 0, wHint = 0, wChecked = false, wMissed = [];
+
+function expectedDe(item) {
+  return item.de.split(",")[0].split(" / ")[0].replace(/\|/g, "").trim();
+}
+function normDe(t) {
+  return t.replace(/\|/g, "").replace(/\s+/g, " ").trim().replace(/[.!]+$/, "").toLowerCase();
+}
+function hintMask(exp, h) {
+  return exp.split(" ").map(word => {
+    const chars = Array.from(word);
+    return chars.map((c, i) => (i < h || !/\p{L}/u.test(c)) ? c : "_").join(" ");
+  }).join("   ");
+}
+
+function startWrite(list) {
+  wQueue = list ? shuffleArr(list) : limitedPool();
+  wTotal = wQueue.length; wDone = 0; wMistakes = 0; wMissed = [];
+  renderWrite();
+}
+
+function renderWrite() {
+  const box = document.getElementById("writeBox");
+  if (wTotal === 0) {
+    box.innerHTML = `<div class="result"><div class="msg">Brak słówek w tym wyborze. Wybierz inną lekcję u góry.</div></div>`;
+    return;
+  }
+  if (wQueue.length === 0) { renderWriteResult(); return; }
+  const item = wQueue[0];
+  wHint = 0; wChecked = false;
+  box.innerHTML = `
+    <div class="qprog"><div class="qbar" style="width:${(wDone / wTotal) * 100}%"></div></div>
+    <div class="qmeta"><span>Opanowane: ${wDone} / ${wTotal}</span><span>Błędy: ${wMistakes}</span></div>
+    <div class="qcard"><div class="badge">Lektion ${item.l}</div><div class="word">${item.pl}</div>
+      <div class="hintline" id="hintLine"></div></div>
+    <input id="wInput" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Wpisz po niemiecku…">
+    <div class="chars">
+      ${["ä", "ö", "ü", "ß"].map(c => `<button onmousedown="event.preventDefault()" onclick="insertChar('${c}')">${c}</button>`).join("")}
+    </div>
+    <div class="wbtns" id="wBtns">
+      <button class="btn-hint" onclick="wantHint()">💡 Podpowiedź</button>
+      <button class="btn-skip" onclick="checkWrite(true)">Nie wiem</button>
+      <button class="btn-check" onclick="checkWrite(false)">Sprawdź</button>
+    </div>
+    <div id="wFeedback"></div>`;
+  const inp = document.getElementById("wInput");
+  inp.addEventListener("keydown", e => {
+    if (e.key === "Enter") { e.preventDefault(); wChecked ? renderWrite() : checkWrite(false); }
+  });
+  inp.focus();
+}
+
+function insertChar(c) {
+  const inp = document.getElementById("wInput");
+  if (!inp || inp.disabled) return;
+  const a = inp.selectionStart ?? inp.value.length, b = inp.selectionEnd ?? a;
+  inp.value = inp.value.slice(0, a) + c + inp.value.slice(b);
+  inp.setSelectionRange(a + 1, a + 1);
+  inp.focus();
+}
+
+function wantHint() {
+  if (wChecked) return;
+  wHint++;
+  document.getElementById("hintLine").innerText = hintMask(expectedDe(wQueue[0]), wHint);
+  document.getElementById("wInput").focus();
+}
+
+function checkWrite(giveUp) {
+  if (wChecked) return;
+  const inp = document.getElementById("wInput");
+  const item = wQueue[0];
+  const exp = expectedDe(item);
+  const val = inp.value;
+  if (!giveUp && !val.trim()) { inp.focus(); return; }
+  wChecked = true;
+  inp.disabled = true;
+  const correct = !giveUp && isCorrect(item, val);
+  wQueue.shift();
+  let fb;
+  if (correct && wHint === 0) {
+    wDone++;
+    inp.classList.add("ok");
+    const exact = val.trim().replace(/[.!]+$/, "") === exp.replace(/[.!]+$/, "");
+    fb = `<div class="fb good">✅ Dobrze!${exact ? "" : " Uważaj na pisownię (wielkie litery):"}
+      <div class="ans">${formatGerman(item.de)}</div></div>`;
+  } else if (correct) {
+    wMistakes++;
+    wMissed.push(item);
+    wQueue.splice(Math.min(3, wQueue.length), 0, item);
+    inp.classList.add("ok");
+    fb = `<div class="fb good">👍 Dobrze, ale z podpowiedzią – to słówko wróci jeszcze raz.
+      <div class="ans">${formatGerman(item.de)}</div></div>`;
+  } else {
+    wMistakes++;
+    wMissed.push(item);
+    hardWords.add(item); saveHard();
+    wQueue.splice(Math.min(3, wQueue.length), 0, item);
+    inp.classList.add("bad");
+    fb = `<div class="fb miss">${giveUp ? "Poprawna odpowiedź:" : "❌ Prawidłowo:"}
+      <div class="ans">${formatGerman(item.de)}</div>
+      ${giveUp ? "" : `<div class="sub">Ty wpisałeś: ${val.replace(/</g, "&lt;")}</div>`}
+      <div class="sub">Słówko wróci za kilka pytań.</div></div>`;
+  }
+  document.getElementById("wBtns").innerHTML =
+    `<button class="btn-next" style="grid-column:1/-1;margin-top:0" onclick="renderWrite()">${wQueue.length ? "Dalej →" : "Zobacz wynik"}</button>`;
+  document.getElementById("wFeedback").innerHTML = fb;
+}
+
+function renderWriteResult() {
+  const uniqueMissed = Array.from(new Set(wMissed));
+  document.getElementById("writeBox").innerHTML = `
+    <div class="result">
+      <div class="big">🎉 ${wTotal} / ${wTotal}</div>
+      <div class="msg">Opanowałeś wszystkie słówka w tej rundzie.<br>Pomyłki / podpowiedzi: ${wMistakes}</div>
+      ${uniqueMissed.length ? `<button class="btn-hard" onclick="startWrite(uniqueMissedList())">Ćwicz tylko trudne z tej rundy (${uniqueMissed.length})</button>` : ""}
+      <button class="btn-ok" onclick="startWrite()">Jeszcze raz (nowe losowanie)</button>
+      <button class="btn-nav" onclick="setMode('flash')">Wróć do fiszek</button>
+    </div>`;
+  renderChips();
+}
+function uniqueMissedList() { return Array.from(new Set(wMissed)); }
+
+// ================= TEST (np. 25 losowych słówek, ocena na końcu) =================
+let tList = [], tIdx = 0, tAns = [];
+
+function esc(t) { return String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+function acceptedAnswers(item) { return allWords.filter(w => w.pl === item.pl).map(w => normDe(expectedDe(w))); }
+function isCorrect(item, val) { return acceptedAnswers(item).includes(normDe(val)); }
+
+function startTest() {
+  const seen = new Set();
+  const pool = shuffleArr(quizPool()).filter(w => !seen.has(w.pl) && seen.add(w.pl));
+  const sel = document.getElementById("testCount").value;
+  const n = sel === "all" ? pool.length : parseInt(sel, 10);
+  tList = pool.slice(0, n);
+  tIdx = 0;
+  tAns = tList.map(() => "");
+  renderTest();
+}
+
+function renderTest() {
+  const box = document.getElementById("testBox");
+  if (tList.length === 0) {
+    box.innerHTML = `<div class="result"><div class="msg">Brak słówek w tym wyborze. Wybierz inną lekcję u góry.</div></div>`;
+    return;
+  }
+  const item = tList[tIdx];
+  const last = tIdx === tList.length - 1;
+  box.innerHTML = `
+    <div class="qprog"><div class="qbar" style="width:${(tIdx / tList.length) * 100}%"></div></div>
+    <div class="qmeta"><span>Pytanie ${tIdx + 1} / ${tList.length}</span><span>Bez podpowiedzi 😉</span></div>
+    <div class="qcard"><div class="badge">Test</div><div class="word">${item.pl}</div><div class="sub">Napisz po niemiecku (z rodzajnikiem)</div></div>
+    <input id="tInput" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Wpisz po niemiecku…">
+    <div class="chars">
+      ${["ä", "ö", "ü", "ß"].map(c => `<button onmousedown="event.preventDefault()" onclick="insertTestChar('${c}')">${c}</button>`).join("")}
+    </div>
+    <div class="tnav">
+      <button class="btn-nav" id="tBack" onclick="testStep(-1)" ${tIdx === 0 ? "disabled" : ""}>← Wstecz</button>
+      <button class="${last ? "btn-ok" : "btn-check"}" onclick="testStep(1)">${last ? "Zakończ test ✔" : "Dalej →"}</button>
+    </div>`;
+  const inp = document.getElementById("tInput");
+  inp.value = tAns[tIdx];
+  inp.addEventListener("input", () => { tAns[tIdx] = inp.value; });
+  inp.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); testStep(1); } });
+  inp.focus();
+}
+
+function insertTestChar(c) {
+  const inp = document.getElementById("tInput");
+  if (!inp) return;
+  const a = inp.selectionStart ?? inp.value.length, b = inp.selectionEnd ?? a;
+  inp.value = inp.value.slice(0, a) + c + inp.value.slice(b);
+  inp.setSelectionRange(a + 1, a + 1);
+  tAns[tIdx] = inp.value;
+  inp.focus();
+}
+
+function testStep(d) {
+  if (d > 0 && tIdx === tList.length - 1) { finishTest(); return; }
+  tIdx = Math.max(0, Math.min(tList.length - 1, tIdx + d));
+  renderTest();
+}
+
+let tWrongList = [];
+function finishTest() {
+  const wrong = [];
+  let score = 0;
+  tList.forEach((item, i) => {
+    if (isCorrect(item, tAns[i])) score++;
+    else { wrong.push({ item, ans: tAns[i] }); hardWords.add(item); }
+  });
+  saveHard();
+  tWrongList = wrong.map(w => w.item);
+  const pct = Math.round((score / tList.length) * 100);
+  const msg = pct === 100 ? "Perfekt! 🎉" : pct >= 85 ? "Świetnie! 💪" : pct >= 60 ? "Nieźle, popraw błędy poniżej." : "Jeszcze trochę nauki, dasz radę!";
+  const review = wrong.map(w => `
+    <div class="rev"><div class="pl">${esc(w.item.pl)}</div>
+      <div class="good">${formatGerman(esc(w.item.de))}</div>
+      <div class="bad">${w.ans.trim() ? "Twoja odpowiedź: " + esc(w.ans) : "brak odpowiedzi"}</div></div>`).join("");
+  document.getElementById("testBox").innerHTML = `
+    <div class="result" style="padding-bottom:0">
+      <div class="big">${score} / ${tList.length}</div>
+      <div class="msg">${pct}% — ${msg}</div>
+      ${wrong.length ? `<button class="btn-hard" onclick="practiceWrong()">Ćwicz błędne w trybie Pisanie (${wrong.length})</button>` : ""}
+      <button class="btn-ok" onclick="startTest()">Nowy test (inne słówka)</button>
+      <button class="btn-nav" onclick="setMode('flash')">Wróć do fiszek</button>
+    </div>
+    ${wrong.length ? `<div class="revlist">Do poprawy:</div>${review}` : ""}`;
+}
+
+function practiceWrong() {
+  const list = tWrongList.slice();
+  setMode("write");
+  startWrite(list);
+}
 </script>
 </body>
 </html>
