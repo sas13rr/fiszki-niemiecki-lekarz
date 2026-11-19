@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Deutsch Arcade – Kapitel 5 Gesundheit</title>
+  <title>Fiszki – Nauka Niemieckiego</title>
   <!-- Tailwind CSS dla responsywnego i nowoczesnego layoutu -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Tone.js do proceduralnych efektów dźwiękowych bez zewnętrznych plików MP3 -->
+  <!-- Tone.js do proceduralnych efektów dźwiękowych (bez zewnętrznych plików MP3) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
   <!-- Czcionka Inter z Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,7 +15,7 @@
 
   <style>
     /* =====================================================================
-       STYL BAZOWY, KOLORY RODZAJNIKÓW I ANIMACJE ARCADOWE
+       STYL BAZOWY, KOLORY RODZAJNIKÓW I BEZAWARYJNE OBRACANIE FISZKI 3D
        ===================================================================== */
     :root {
       --bg-dark: #070b14;
@@ -39,7 +39,7 @@
       overscroll-behavior-y: none;
     }
 
-    /* Tło z subtelną poświatą ambient */
+    /* Ambientowe tło */
     .ambient-bg {
       position: fixed;
       inset: 0;
@@ -51,50 +51,66 @@
                   #070b14;
     }
 
-    /* Szklane panele (Glassmorphism) */
+    /* Panele szklane (Glassmorphism) */
     .glass {
-      background: rgba(19, 27, 46, 0.72);
+      background: rgba(19, 27, 46, 0.74);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       border: 1px solid rgba(255, 255, 255, 0.08);
     }
 
     .glass-strong {
-      background: rgba(15, 23, 42, 0.9);
+      background: rgba(15, 23, 42, 0.92);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
       border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    /* Kolorowanie niemieckich rodzajników */
+    /* Kolorowanie rodzajników niemieckich */
     .der { color: var(--der-color); font-weight: 800; }
     .die { color: var(--die-color); font-weight: 800; }
     .das { color: var(--das-color); font-weight: 800; }
 
-    /* Fiszka 3D + obsługa przesuwania (Swipe) */
-    .card-scene {
-      perspective: 1300px;
+    /* =====================================================================
+       POPRAWIONA MECHANIKA 3D FISZKI (iOS Safari + Android Chrome + PC)
+       Zewnętrzna warstwa przesuwa (swipe), wewnętrzna obraca w 3D (flip).
+       ===================================================================== */
+    .swipe-shell {
+      position: relative;
+      width: 100%;
+      height: 310px;
       touch-action: pan-y;
+      will-change: transform;
+      cursor: pointer;
+    }
+
+    .card-scene {
+      width: 100%;
+      height: 100%;
+      perspective: 1200px;
+      -webkit-perspective: 1200px;
     }
 
     .flashcard-inner {
       position: relative;
       width: 100%;
       height: 100%;
-      transition: transform 0.52s cubic-bezier(0.22, 1, 0.36, 1);
       transform-style: preserve-3d;
+      -webkit-transform-style: preserve-3d;
+      transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
-    .flashcard-inner.flipped {
+    .flashcard-inner.is-flipped {
       transform: rotateY(180deg);
+      -webkit-transform: rotateY(180deg);
     }
 
     .flashcard-face {
       position: absolute;
       inset: 0;
+      border-radius: 28px;
       backface-visibility: hidden;
       -webkit-backface-visibility: hidden;
-      border-radius: 28px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -106,14 +122,23 @@
 
     .flashcard-front {
       background: linear-gradient(155deg, #1b2744 0%, #0f172a 100%);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.11);
+      transform: rotateY(0deg) translateZ(1px);
+      -webkit-transform: rotateY(0deg) translateZ(1px);
+      pointer-events: auto;
     }
 
     .flashcard-back {
-      background: linear-gradient(155deg, #1e293b 0%, #0b1120 100%);
-      border: 1px solid rgba(99, 102, 241, 0.45);
-      transform: rotateY(180deg);
+      background: linear-gradient(155deg, #1e2a4a 0%, #0b1120 100%);
+      border: 1px solid rgba(99, 102, 241, 0.5);
+      transform: rotateY(180deg) translateZ(1px);
+      -webkit-transform: rotateY(180deg) translateZ(1px);
+      pointer-events: none;
     }
+
+    /* Blokada przejmowania kliknięć przez ukrytą stronę karty */
+    .flashcard-inner.is-flipped .flashcard-front { pointer-events: none; }
+    .flashcard-inner.is-flipped .flashcard-back  { pointer-events: auto; }
 
     /* Animacja potrząsania przy błędzie */
     @keyframes shake {
@@ -125,27 +150,26 @@
     }
     .animate-shake { animation: shake 0.36s ease; }
 
-    /* Animacja wyskoku (pop) */
+    /* Animacja pojawienia się elementu */
     @keyframes popIn {
-      0% { transform: scale(0.88); opacity: 0; }
-      70% { transform: scale(1.03); opacity: 1; }
+      0% { transform: scale(0.92); opacity: 0; }
       100% { transform: scale(1); opacity: 1; }
     }
-    .animate-pop { animation: popIn 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+    .animate-pop { animation: popIn 0.24s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
 
-    /* Przyciski 3D arcade */
+    /* Przyciski z wyczuwalnym wciśnięciem */
     .btn-arcade {
-      transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.15s ease;
+      transition: transform 0.12s ease, opacity 0.15s ease;
     }
     .btn-arcade:active {
       transform: translateY(2px) scale(0.97);
     }
 
-    /* Ukrycie paska przewijania dla poziomych filtrów */
+    /* Ukrycie paska przewijania dla poziomych pigułek */
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-    /* Canvas do konfetti nad całą stroną */
+    /* Canvas do konfetti nad stroną */
     #confettiCanvas {
       position: fixed;
       inset: 0;
@@ -157,24 +181,24 @@
 
     /* Widoki zakładek */
     .tab-view { display: none; }
-    .tab-view.active { display: block; animation: popIn 0.22s ease; }
+    .tab-view.active { display: block; animation: popIn 0.2s ease; }
   </style>
 </head>
 <body class="pb-28 select-none">
 
-  <!-- Tło ambientowe i canvas na konfetti -->
+  <!-- Tło ambientowe i canvas konfetti -->
   <div class="ambient-bg"></div>
   <canvas id="confettiCanvas"></canvas>
 
-  <!-- Kontener powiadomień (Toast) -->
+  <!-- Powiadomienia Toast -->
   <div id="toastContainer" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-md flex flex-col gap-2 pointer-events-none"></div>
 
-  <!-- Customowy Modal (zastępuje zakazane alert/confirm) -->
+  <!-- Customowy Modal (zamiast alert/confirm) -->
   <div id="customModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/75 backdrop-blur-sm p-4">
     <div class="glass-strong rounded-3xl p-6 w-full max-w-sm border border-white/15 shadow-2xl animate-pop">
       <div id="modalIcon" class="text-4xl mb-3 text-center">⚠️</div>
       <h3 id="modalTitle" class="text-lg font-extrabold text-center text-white mb-2">Tytuł</h3>
-      <p id="modalText" class="text-sm text-slate-300 text-center mb-6 leading-relaxed">Treść komunikatu</p>
+      <p id="modalText" class="text-sm text-slate-300 text-center mb-6 leading-relaxed">Treść</p>
       <div id="modalActions" class="flex gap-3"></div>
     </div>
   </div>
@@ -182,15 +206,15 @@
   <!-- Główny kontener aplikacji -->
   <div class="w-full max-w-md mx-auto px-4 pt-4">
 
-    <!-- GÓRNY PASEK: Marka, Poziom XP, Dźwięk i Kierunek -->
+    <!-- GÓRNY PASEK: Nazwa "Fiszki", Poziom XP, Dźwięk i Kierunek -->
     <header class="flex items-center justify-between gap-2 mb-4">
       <div class="flex items-center gap-2.5 cursor-pointer" onclick="switchTab('profile')">
         <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-500 to-cyan-400 flex items-center justify-center text-xl shadow-lg shadow-indigo-500/30 font-black">
-          🇩🇪
+          🗂️
         </div>
         <div>
           <div class="flex items-center gap-1.5">
-            <span class="font-extrabold text-sm tracking-tight text-white">Deutsch Arcade</span>
+            <span class="font-black text-base tracking-tight text-white">Fiszki</span>
             <span id="hdrLevelBadge" class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-indigo-500/25 text-indigo-300 border border-indigo-400/30">Lv.1</span>
           </div>
           <div class="flex items-center gap-2 mt-0.5">
@@ -209,87 +233,139 @@
     </header>
 
     <!-- ===================================================================
-         WIDOK 1: FISZKI (ZE SWIPE'OWANIEM I INTELIGENTNYM SYSTEMEM POWTÓREK)
+         WIDOK 1: FISZKI (EKSPLORATOR DZIAŁÓW/LEKCJI + EKRAN NAUKI)
          =================================================================== -->
     <section id="view-cards" class="tab-view active">
-      <!-- Pasek postępu i statystyki -->
-      <div class="glass rounded-2xl p-3.5 mb-3">
-        <div class="flex justify-between items-center text-xs font-semibold mb-2">
-          <span class="text-emerald-400" id="cardsMasteredStat">✓ Opanowane: 0 / 85</span>
-          <span class="text-rose-400" id="cardsHardStat">🔥 Powtórki: 0</span>
-        </div>
-        <div class="w-full h-2 bg-slate-800/90 rounded-full overflow-hidden">
-          <div id="cardsProgressBar" class="h-full bg-gradient-to-r from-emerald-400 via-cyan-400 to-indigo-500 transition-all duration-500" style="width: 0%"></div>
-        </div>
-      </div>
 
-      <!-- Filtry lekcji + przyciski pomocnicze -->
-      <div class="flex gap-2 mb-3">
-        <select id="lessonSelect" onchange="filterFlashcards()" class="flex-1 glass rounded-xl px-3 py-2.5 text-sm font-semibold text-white outline-none focus:border-indigo-400">
-          <option value="all" class="bg-slate-900">Wszystkie lekcje (85)</option>
-          <option value="1" class="bg-slate-900">Lektion 1: Dolegliwości (19)</option>
-          <option value="2" class="bg-slate-900">Lektion 2: U lekarza (22)</option>
-          <option value="3" class="bg-slate-900">Lektion 3: Lekarstwa (17)</option>
-          <option value="4" class="bg-slate-900">Lektion 4: Wypadki (27)</option>
-          <option value="hard" class="bg-slate-900">🔥 Tylko do powtórki</option>
-          <option value="unlearned" class="bg-slate-900">🆕 Jeszcze nieopanowane</option>
-        </select>
-        <button onclick="shuffleFlashcards()" class="btn-arcade w-11 rounded-xl glass flex items-center justify-center text-lg" title="Wymieszaj">🔀</button>
-        <button id="autoSpeakBtn" onclick="toggleAutoSpeak()" class="btn-arcade w-11 rounded-xl glass flex items-center justify-center text-base" title="Auto-lektor przy odwróceniu">🗣️</button>
-      </div>
-
-      <!-- Interaktywna karta 3D (obsługa kliknięcia + swipe lewo/prawo) -->
-      <div class="relative mb-4">
-        <!-- Nakładki kierunkowe przy przesuwaniu palcem -->
-        <div id="swipeHintRight" class="pointer-events-none absolute inset-0 z-20 rounded-[28px] border-4 border-emerald-400 bg-emerald-500/20 flex items-center justify-center opacity-0 transition-opacity">
-          <span class="px-5 py-2 rounded-2xl bg-emerald-500 text-white font-black text-xl tracking-wide shadow-xl -rotate-6">ZAPAMIĘTAŁEM ✓</span>
-        </div>
-        <div id="swipeHintLeft" class="pointer-events-none absolute inset-0 z-20 rounded-[28px] border-4 border-rose-500 bg-rose-500/20 flex items-center justify-center opacity-0 transition-opacity">
-          <span class="px-5 py-2 rounded-2xl bg-rose-600 text-white font-black text-xl tracking-wide shadow-xl rotate-6">POWTÓRZ ✕</span>
+      <!-- PODWIDOK 1A: DRZEWO DZIAŁÓW I FOLDERY LEKCJI -->
+      <div id="cardsFolderView">
+        <!-- Globalny pasek postępu -->
+        <div class="glass rounded-2xl p-3.5 mb-4">
+          <div class="flex justify-between items-center text-xs font-semibold mb-2">
+            <span class="text-emerald-400" id="globalMasteredStat">✓ Opanowane: 0 / 85</span>
+            <span class="text-rose-400" id="globalHardStat">🔥 Do powtórki: 0</span>
+          </div>
+          <div class="w-full h-2 bg-slate-800/90 rounded-full overflow-hidden">
+            <div id="globalProgressBar" class="h-full bg-gradient-to-r from-emerald-400 via-cyan-400 to-indigo-500 transition-all duration-500" style="width: 0%"></div>
+          </div>
         </div>
 
-        <div id="swipeContainer" class="card-scene w-full h-[310px] cursor-pointer">
-          <div id="flashcard" class="flashcard-inner">
-            <!-- PRZÓD FISZKI -->
-            <div class="flashcard-face flashcard-front">
-              <div id="cardLessonBadge" class="absolute top-4 left-4 text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-white/10 text-slate-300">
-                Lektion 1 • 1/85
-              </div>
-              <button id="cardAudioFront" onclick="speakCurrentCard(event)" class="btn-arcade absolute top-3.5 right-3.5 w-10 h-10 rounded-full bg-indigo-500/20 border border-indigo-400/40 text-indigo-200 flex items-center justify-center text-lg z-10">🔊</button>
-              <div id="cardFrontWord" class="text-2xl sm:text-3xl font-extrabold leading-snug text-white px-2">Ładowanie...</div>
-              <div id="cardFrontSub" class="text-xs text-slate-400 mt-4 font-medium">Dotknij, żeby odwrócić • Przesuń ⬅️ / ➡️</div>
+        <!-- Szybkie inteligentne foldery (Powtórki / Nieopanowane) -->
+        <div class="grid grid-cols-2 gap-2.5 mb-5">
+          <button onclick="openFlashcardScope('hard', '🔥 Do powtórki')" class="btn-arcade glass rounded-2xl p-3.5 text-left border border-rose-500/25 flex items-center gap-3">
+            <span class="text-2xl">🔥</span>
+            <div class="min-w-0">
+              <div class="text-xs font-extrabold text-white">Do powtórki</div>
+              <div id="quickHardCount" class="text-[11px] font-bold text-rose-300">0 słówek</div>
             </div>
+          </button>
+          <button onclick="openFlashcardScope('unlearned', '🆕 Nieopanowane')" class="btn-arcade glass rounded-2xl p-3.5 text-left border border-cyan-500/25 flex items-center gap-3">
+            <span class="text-2xl">🆕</span>
+            <div class="min-w-0">
+              <div class="text-xs font-extrabold text-white">Nieopanowane</div>
+              <div id="quickUnlearnedCount" class="text-[11px] font-bold text-cyan-300">85 słówek</div>
+            </div>
+          </button>
+        </div>
 
-            <!-- TYŁ FISZKI -->
-            <div class="flashcard-face flashcard-back">
-              <div id="cardBackBadge" class="absolute top-4 left-4 text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-indigo-500/25 text-indigo-300">
-                Niemiecki
+        <!-- Nagłówek drzewa działów -->
+        <div class="flex items-center justify-between mb-2.5 px-1">
+          <h2 class="text-xs font-extrabold uppercase tracking-wider text-slate-400">Działy i lekcje (Niemiecki)</h2>
+          <span id="chaptersCountBadge" class="text-[11px] font-bold text-indigo-300">1 dział</span>
+        </div>
+
+        <!-- Kontener na dynamicznie generowane Działy -> Lekcje -->
+        <div id="curriculumTree" class="space-y-4"></div>
+      </div>
+
+      <!-- PODWIDOK 1B: AKTYWNA NAUKA FISZEK -->
+      <div id="cardsStudyView" class="hidden">
+        <!-- Pasek powrotu do działów + narzędzia -->
+        <div class="flex items-center justify-between gap-2 mb-3">
+          <button onclick="closeFlashcardStudy()" class="btn-arcade px-3 py-2 rounded-xl glass text-xs font-extrabold text-slate-200 flex items-center gap-1.5">
+            <span>←</span><span>Działy</span>
+          </button>
+          <div id="activeScopeTitle" class="text-xs font-extrabold text-cyan-300 truncate text-center flex-1 px-1">Lektion 1</div>
+          <div class="flex items-center gap-1.5">
+            <button onclick="shuffleFlashcards()" class="btn-arcade w-9 h-9 rounded-xl glass flex items-center justify-center text-base" title="Wymieszaj">🔀</button>
+            <button id="autoSpeakBtn" onclick="toggleAutoSpeak()" class="btn-arcade w-9 h-9 rounded-xl glass flex items-center justify-center text-sm" title="Auto-lektor przy odwróceniu">🗣️</button>
+          </div>
+        </div>
+
+        <!-- Pasek postępu w bieżącej lekcji / dziale -->
+        <div class="glass rounded-2xl px-3.5 py-2.5 mb-3">
+          <div class="flex justify-between items-center text-[11px] font-bold mb-1.5">
+            <span id="studyCounterText" class="text-slate-300">Fiszka 1 / 19</span>
+            <span id="studyMasteredText" class="text-emerald-400">Opanowane: 0 / 19</span>
+          </div>
+          <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+            <div id="studyProgressBar" class="h-full bg-gradient-to-r from-emerald-400 to-cyan-400 transition-all duration-300" style="width: 0%"></div>
+          </div>
+        </div>
+
+        <!-- Interaktywna Fiszka 3D ze Swipe'owaniem (Pointer Events) -->
+        <div class="relative mb-3">
+          <!-- Nakładki kierunkowe przy przesuwaniu palcem -->
+          <div id="swipeHintRight" class="pointer-events-none absolute inset-0 z-20 rounded-[28px] border-4 border-emerald-400 bg-emerald-500/20 flex items-center justify-center opacity-0 transition-opacity">
+            <span class="px-5 py-2 rounded-2xl bg-emerald-500 text-white font-black text-xl tracking-wide shadow-xl -rotate-6">ZAPAMIĘTAŁEM ✓</span>
+          </div>
+          <div id="swipeHintLeft" class="pointer-events-none absolute inset-0 z-20 rounded-[28px] border-4 border-rose-500 bg-rose-500/20 flex items-center justify-center opacity-0 transition-opacity">
+            <span class="px-5 py-2 rounded-2xl bg-rose-600 text-white font-black text-xl tracking-wide shadow-xl rotate-6">POWTÓRZ ✕</span>
+          </div>
+
+          <div id="swipeShell" class="swipe-shell">
+            <div class="card-scene">
+              <div id="flashcard" class="flashcard-inner">
+                <!-- PRZÓD FISZKI -->
+                <div class="flashcard-face flashcard-front">
+                  <div id="cardFrontBadge" class="absolute top-4 left-4 text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-white/10 text-slate-300">
+                    Polski
+                  </div>
+                  <button id="cardAudioFront" type="button" onclick="speakCurrentCard(event)" class="btn-arcade absolute top-3.5 right-3.5 w-10 h-10 rounded-full bg-indigo-500/25 border border-indigo-400/40 text-indigo-100 flex items-center justify-center text-lg z-10">🔊</button>
+                  <div id="cardFrontWord" class="text-2xl sm:text-3xl font-extrabold leading-snug text-white px-2">Ładowanie...</div>
+                  <div id="cardFrontSub" class="text-xs text-slate-400 mt-5 font-medium">Dotknij kartę, żeby zobaczyć tłumaczenie</div>
+                </div>
+
+                <!-- TYŁ FISZKI (TŁUMACZENIE) -->
+                <div class="flashcard-face flashcard-back">
+                  <div id="cardBackBadge" class="absolute top-4 left-4 text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-indigo-500/30 text-indigo-200">
+                    Niemiecki
+                  </div>
+                  <button id="cardAudioBack" type="button" onclick="speakCurrentCard(event)" class="btn-arcade absolute top-3.5 right-3.5 w-10 h-10 rounded-full bg-indigo-500/35 border border-indigo-400/50 text-white flex items-center justify-center text-lg z-10">🔊</button>
+                  <div id="cardBackWord" class="text-2xl sm:text-3xl font-extrabold leading-snug text-white px-2"></div>
+                  <div id="cardTipArea" class="mt-4 flex flex-wrap justify-center gap-1.5"></div>
+                  <div class="text-[11px] text-slate-400 mt-4 font-medium">Przesuń ⬅️ Powtórz • ➡️ Zapamiętałem</div>
+                </div>
               </div>
-              <button id="cardAudioBack" onclick="speakCurrentCard(event)" class="btn-arcade absolute top-3.5 right-3.5 w-10 h-10 rounded-full bg-indigo-500/30 border border-indigo-400/50 text-white flex items-center justify-center text-lg z-10">🔊</button>
-              <div id="cardBackWord" class="text-2xl sm:text-3xl font-extrabold leading-snug text-white px-2"></div>
-              <div id="cardTipArea" class="mt-4 flex flex-wrap justify-center gap-1.5"></div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Przyciski akcji pod fiszką -->
-      <div class="grid grid-cols-2 gap-3 mb-3">
-        <button onclick="gradeFlashcard(false)" class="btn-arcade py-4 px-3 rounded-2xl bg-gradient-to-br from-rose-500 to-rose-700 text-white font-extrabold text-sm sm:text-base shadow-lg shadow-rose-600/25 flex items-center justify-center gap-2">
-          <span>✕</span><span>Nie zapamiętałem</span>
-        </button>
-        <button onclick="gradeFlashcard(true)" class="btn-arcade py-4 px-3 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 text-white font-extrabold text-sm sm:text-base shadow-lg shadow-emerald-600/25 flex items-center justify-center gap-2">
-          <span>✓</span><span>Zapamiętałem</span>
-        </button>
-      </div>
+        <!-- Główne przyciski: Nie zapamiętałem / Zapamiętałem -->
+        <div class="grid grid-cols-2 gap-3 mb-2.5">
+          <button type="button" onclick="gradeFlashcard(false)" class="btn-arcade py-4 px-3 rounded-2xl bg-gradient-to-br from-rose-500 to-rose-700 text-white font-extrabold text-sm sm:text-base shadow-lg shadow-rose-600/25 flex items-center justify-center gap-2">
+            <span>✕</span><span>Nie zapamiętałem</span>
+          </button>
+          <button type="button" onclick="gradeFlashcard(true)" class="btn-arcade py-4 px-3 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 text-white font-extrabold text-sm sm:text-base shadow-lg shadow-emerald-600/25 flex items-center justify-center gap-2">
+            <span>✓</span><span>Zapamiętałem</span>
+          </button>
+        </div>
 
-      <!-- Legenda kolorów rodzajników -->
-      <div class="glass rounded-2xl px-4 py-2.5 flex items-center justify-between text-xs font-semibold text-slate-400">
-        <span>Kolory rodzajników:</span>
-        <div class="flex items-center gap-3">
-          <span><span class="der">der</span> (męski)</span>
-          <span><span class="die">die</span> (żeński/mn.)</span>
-          <span><span class="das">das</span> (nijaki)</span>
+        <!-- Pomocnicza nawigacja (Poprzednia / Odwróć / Następna) -->
+        <div class="grid grid-cols-3 gap-2 mb-3">
+          <button type="button" onclick="stepFlashcard(-1)" class="btn-arcade py-2.5 rounded-xl glass text-xs font-bold text-slate-300">← Poprzednia</button>
+          <button type="button" onclick="flipFlashcard()" class="btn-arcade py-2.5 rounded-xl glass text-xs font-extrabold text-indigo-300 border border-indigo-400/30">🔄 Odwróć</button>
+          <button type="button" onclick="stepFlashcard(1)" class="btn-arcade py-2.5 rounded-xl glass text-xs font-bold text-slate-300">Następna →</button>
+        </div>
+
+        <!-- Legenda rodzajników -->
+        <div class="glass rounded-2xl px-4 py-2.5 flex items-center justify-between text-[11px] font-semibold text-slate-400">
+          <span>Rodzajniki:</span>
+          <div class="flex items-center gap-3">
+            <span><span class="der">der</span> (męski)</span>
+            <span><span class="die">die</span> (żeński/mn.)</span>
+            <span><span class="das">das</span> (nijaki)</span>
+          </div>
         </div>
       </div>
     </section>
@@ -298,23 +374,16 @@
          WIDOK 2: STREFA GIER (4 INTERAKTYWNE MINIGRY ARCADOWE)
          =================================================================== -->
     <section id="view-games" class="tab-view">
-
       <!-- MENU WYBORU GIER -->
       <div id="gamesMenu">
         <div class="mb-4">
           <h2 class="text-xl font-black text-white">Strefa Gier 🎮</h2>
-          <p class="text-xs text-slate-400 mt-0.5">Ucz się przez zabawę, nabijaj XP i bij rekordy!</p>
+          <p class="text-xs text-slate-400 mt-0.5">Wybierz dział lub lekcję, nabijaj XP i bij rekordy!</p>
         </div>
 
-        <!-- Wybór zakresu lekcji do gier -->
+        <!-- Dynamiczny selektor Działu / Lekcji -->
         <div class="mb-4">
-          <select id="gameLessonFilter" class="w-full glass rounded-xl px-3.5 py-2.5 text-sm font-semibold text-white outline-none">
-            <option value="all" class="bg-slate-900">Zakres gier: Cały rozdział (85 słówek)</option>
-            <option value="1" class="bg-slate-900">Tylko Lektion 1: Dolegliwości</option>
-            <option value="2" class="bg-slate-900">Tylko Lektion 2: U lekarza</option>
-            <option value="3" class="bg-slate-900">Tylko Lektion 3: Lekarstwa</option>
-            <option value="4" class="bg-slate-900">Tylko Lektion 4: Wypadki w domu</option>
-          </select>
+          <select id="gameScopeSelect" class="w-full glass rounded-xl px-3.5 py-2.5 text-sm font-semibold text-white outline-none"></select>
         </div>
 
         <div class="grid grid-cols-1 gap-3">
@@ -338,11 +407,11 @@
                 <h3 class="font-extrabold text-base text-white">Der / Die / Das Rush</h3>
                 <span id="recArticle" class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-pink-500/20 text-pink-300">Rekord: 0</span>
               </div>
-              <p class="text-xs text-slate-400 mt-1">3 życia ❤️❤️❤️. Strzelaj właściwy rodzajnik i wbijaj kosmiczne combo!</p>
+              <p class="text-xs text-slate-400 mt-1">3 życia ❤️❤️❤️. Strzelaj właściwy rodzajnik i wbijaj combo!</p>
             </div>
           </button>
 
-          <!-- Gra 3: Szybka Piłka (Prawda / Fałsz) -->
+          <!-- Gra 3: Szybka Piłka -->
           <button onclick="startSpeedTFGame()" class="btn-arcade glass rounded-2xl p-4 text-left flex items-center gap-4 border border-amber-500/20 hover:border-amber-400/50">
             <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-2xl shrink-0 shadow-lg shadow-amber-500/25">🔥</div>
             <div class="flex-1 min-w-0">
@@ -350,11 +419,11 @@
                 <h3 class="font-extrabold text-base text-white">Szybka Piłka (45s)</h3>
                 <span id="recSpeed" class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300">Rekord: 0</span>
               </div>
-              <p class="text-xs text-slate-400 mt-1">Prawda czy Fałsz? Masz 45 sekund na reakcję. Szybki refleks = mega XP!</p>
+              <p class="text-xs text-slate-400 mt-1">Prawda czy Fałsz? 45 sekund na reakcję, pudło zabiera 3s!</p>
             </div>
           </button>
 
-          <!-- Gra 4: Układanka Słów (Scramble) -->
+          <!-- Gra 4: Układanka Zdań i Słów -->
           <button onclick="startScrambleGame()" class="btn-arcade glass rounded-2xl p-4 text-left flex items-center gap-4 border border-emerald-500/20 hover:border-emerald-400/50">
             <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-2xl shrink-0 shadow-lg shadow-emerald-500/25">🧩</div>
             <div class="flex-1 min-w-0">
@@ -362,7 +431,7 @@
                 <h3 class="font-extrabold text-base text-white">Układanka Zdań i Słów</h3>
                 <span id="recScramble" class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300">Ułożone: 0</span>
               </div>
-              <p class="text-xs text-slate-400 mt-1">Ułóż niemieckie słówko lub zwrot z rozsypanych kafelków. Zero wkuwania pisowni na sucho!</p>
+              <p class="text-xs text-slate-400 mt-1">Układaj niemieckie słówka i zwroty z kafelków z lektorem!</p>
             </div>
           </button>
         </div>
@@ -370,35 +439,26 @@
 
       <!-- KONTENER AKTYWNEJ MINIGRY -->
       <div id="activeGameArea" class="hidden">
-        <!-- Pasek nawigacji minigry -->
         <div class="flex items-center justify-between mb-3">
           <button onclick="exitCurrentGame()" class="btn-arcade px-3 py-1.5 rounded-xl glass text-xs font-bold text-slate-300">← Wróć do gier</button>
           <div id="gameHudRight" class="flex items-center gap-2 text-xs font-extrabold"></div>
         </div>
-        <!-- Dynamiczna zawartość gry -->
         <div id="gameStage"></div>
       </div>
     </section>
 
     <!-- ===================================================================
-         WIDOK 3: TEST 25 PYTAŃ (TRYB KARTKÓWKI Z OCENĄ SZKOLNĄ 1–6)
+         WIDOK 3: TEST 25 PYTAŃ (OCENA SZKOLNA 1–6)
          =================================================================== -->
     <section id="view-quiz" class="tab-view">
-      <!-- Ekran startowy testu -->
       <div id="quizStartBox" class="glass rounded-3xl p-6 text-center">
         <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-3xl shadow-lg shadow-indigo-500/30 mb-4">⚡</div>
         <h2 class="text-2xl font-black text-white mb-1">Test: 25 pytań</h2>
-        <p class="text-xs text-slate-400 mb-5 leading-relaxed">Symulacja sprawdzianu z oceną szkolną (1–6). Błędne odpowiedzi same wpadają do fiszek „Do powtórki”!</p>
+        <p class="text-xs text-slate-400 mb-5 leading-relaxed">Symulacja kartkówki z oceną szkolną (1–6). Błędne słówka same lądują w folderze „Do powtórki”!</p>
 
         <div class="mb-5 text-left">
-          <label class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-1.5">Wybierz materiał:</label>
-          <select id="quizLessonSelect" class="w-full glass rounded-xl px-3.5 py-3 text-sm font-semibold text-white outline-none">
-            <option value="all" class="bg-slate-900">Cały rozdział – 25 losowych pytań</option>
-            <option value="1" class="bg-slate-900">Lektion 1 (max 19 pytań)</option>
-            <option value="2" class="bg-slate-900">Lektion 2 (max 22 pytań)</option>
-            <option value="3" class="bg-slate-900">Lektion 3 (max 17 pytań)</option>
-            <option value="4" class="bg-slate-900">Lektion 4 (25 pytań)</option>
-          </select>
+          <label class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-1.5">Wybierz dział lub lekcję:</label>
+          <select id="quizScopeSelect" class="w-full glass rounded-xl px-3.5 py-3 text-sm font-semibold text-white outline-none"></select>
         </div>
 
         <button onclick="startQuiz()" class="btn-arcade w-full py-4 rounded-2xl bg-gradient-to-r from-indigo-500 to-cyan-500 text-white font-black text-base shadow-lg shadow-indigo-500/30">
@@ -406,7 +466,6 @@
         </button>
       </div>
 
-      <!-- Ekran rozgrywki testu -->
       <div id="quizPlayBox" class="hidden">
         <div class="flex justify-between items-center text-xs font-bold mb-2">
           <span id="quizCounter" class="text-slate-300">Pytanie 1 / 25</span>
@@ -419,7 +478,7 @@
           <div id="quizProgressBar" class="h-full bg-gradient-to-r from-indigo-500 to-cyan-400 transition-all duration-300" style="width: 0%"></div>
         </div>
 
-        <div class="glass rounded-3xl p-6 text-center mb-4 relative">
+        <div class="glass rounded-3xl p-6 text-center mb-4">
           <div class="text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-2">Przetłumacz</div>
           <div id="quizQuestionText" class="text-2xl font-black text-white leading-snug"></div>
           <button id="quizSpeakBtn" onclick="speakQuizWord()" class="hidden btn-arcade mt-3 mx-auto px-3 py-1.5 rounded-full bg-indigo-500/20 text-indigo-300 text-xs font-bold">🔊 Posłuchaj</button>
@@ -428,7 +487,6 @@
         <div id="quizOptionsBox" class="flex flex-col gap-2.5"></div>
       </div>
 
-      <!-- Ekran wyników testu -->
       <div id="quizEndBox" class="hidden glass rounded-3xl p-6 text-center">
         <div class="text-xs font-bold uppercase tracking-widest text-slate-400">Ocena ze sprawdzianu</div>
         <div id="quizGradeBadge" class="text-6xl font-black my-2 bg-gradient-to-br from-cyan-300 to-indigo-400 bg-clip-text text-transparent">5</div>
@@ -438,7 +496,7 @@
         <div id="quizMistakesBox" class="text-left max-h-56 overflow-y-auto flex flex-col gap-2 mb-5"></div>
 
         <div class="grid grid-cols-1 gap-2.5">
-          <button onclick="startQuiz()" class="btn-arcade w-full py-3.5 rounded-2xl bg-gradient-to-r from-indigo-500 to-cyan-500 text-white font-extrabold text-sm">Zagraj jeszcze raz (nowe pytania)</button>
+          <button onclick="startQuiz()" class="btn-arcade w-full py-3.5 rounded-2xl bg-gradient-to-r from-indigo-500 to-cyan-500 text-white font-extrabold text-sm">Zagraj jeszcze raz</button>
           <button id="quizPracticeMistakesBtn" onclick="practiceHardFromQuiz()" class="hidden btn-arcade w-full py-3 rounded-2xl glass text-rose-300 font-bold text-sm border border-rose-500/30">🔥 Poćwicz błędne w fiszkach</button>
         </div>
       </div>
@@ -448,48 +506,37 @@
          WIDOK 4: SŁOWNIK + ŚCIĄGA Z NIEMIECKIEGO
          =================================================================== -->
     <section id="view-dict" class="tab-view">
-      <!-- Ściąga dla początkujących -->
       <details class="glass rounded-2xl p-3.5 mb-3 group">
         <summary class="font-extrabold text-sm text-cyan-300 cursor-pointer flex items-center justify-between list-none">
           <span>💡 Ściąga z niemieckiego (jak to czytać?)</span>
           <span class="text-xs text-slate-400 group-open:rotate-180 transition-transform">▼</span>
         </summary>
         <div class="mt-3 pt-3 border-t border-white/10 text-xs text-slate-300 space-y-2 leading-relaxed">
-          <p>• <span class="der">der</span> / <span class="die">die</span> / <span class="das">das</span> – to rodzajniki. W niemieckim zawsze ucz się ich razem z rzeczownikiem! W liczbie mnogiej zawsze jest <span class="die">die</span> (np. <i>die Kopfschmerzen</i>).</p>
-          <p>• <b>Kreska pionowa `|`</b> w czasownikach (np. <i>auf|passen</i>, <i>weh|tun</i>) oznacza czasownik rozdzielny – w zdaniu początek leci na koniec: <i>Ich <b>passe</b> gut <b>auf</b></i>.</p>
-          <p>• <b>Końcówka po przecinku</b> (np. <i>-en, -e, -̈e</i>) pokazuje liczbę mnogą. Dwie kropki nad kreską (<i>-̈e</i>) oznaczają przegłos (<i>der Arzt → die Ärzte</i>).</p>
+          <p>• <span class="der">der</span> / <span class="die">die</span> / <span class="das">das</span> – rodzajniki. Zawsze ucz się ich razem z rzeczownikiem! W liczbie mnogiej zawsze jest <span class="die">die</span>.</p>
+          <p>• <b>Kreska pionowa `|`</b> (np. <i>auf|passen</i>, <i>weh|tun</i>) to czasownik rozdzielny – w zdaniu początek leci na koniec: <i>Ich <b>passe</b> gut <b>auf</b></i>.</p>
+          <p>• <b>Końcówka po przecinku</b> (np. <i>-en, -e, -̈e</i>) pokazuje liczbę mnogą (<i>der Arzt → die Ärzte</i>).</p>
         </div>
       </details>
 
-      <!-- Wyszukiwarka -->
       <div class="relative mb-3">
         <input id="dictSearch" type="text" oninput="renderDict()" placeholder="Szukaj po polsku lub niemiecku..." class="w-full glass rounded-2xl pl-10 pr-4 py-3 text-sm text-white placeholder-slate-400 outline-none focus:border-indigo-400">
         <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
       </div>
 
-      <!-- Filtry lekcji jako poziome pigułki -->
-      <div class="flex gap-2 overflow-x-auto no-scrollbar pb-2 mb-2" id="dictFilterPills">
-        <button onclick="setDictFilter('all', this)" class="dict-pill px-3.5 py-1.5 rounded-full text-xs font-bold bg-indigo-500 text-white shrink-0">Wszystkie (85)</button>
-        <button onclick="setDictFilter('1', this)" class="dict-pill px-3.5 py-1.5 rounded-full text-xs font-bold glass text-slate-300 shrink-0">Lektion 1</button>
-        <button onclick="setDictFilter('2', this)" class="dict-pill px-3.5 py-1.5 rounded-full text-xs font-bold glass text-slate-300 shrink-0">Lektion 2</button>
-        <button onclick="setDictFilter('3', this)" class="dict-pill px-3.5 py-1.5 rounded-full text-xs font-bold glass text-slate-300 shrink-0">Lektion 3</button>
-        <button onclick="setDictFilter('4', this)" class="dict-pill px-3.5 py-1.5 rounded-full text-xs font-bold glass text-slate-300 shrink-0">Lektion 4</button>
-        <button onclick="setDictFilter('hard', this)" class="dict-pill px-3.5 py-1.5 rounded-full text-xs font-bold glass text-rose-300 shrink-0">🔥 Trudne</button>
-      </div>
+      <!-- Dynamiczne pigułki filtrów generowane z CURRICULUM -->
+      <div class="flex gap-2 overflow-x-auto no-scrollbar pb-2 mb-2" id="dictFilterPills"></div>
 
-      <!-- Lista słówek -->
       <div id="dictList" class="flex flex-col gap-2"></div>
     </section>
 
     <!-- ===================================================================
-         WIDOK 5: PROFIL, STATYSTYKI, ODZNAKI I UDOSTĘPNIANIE WYNIKU
+         WIDOK 5: PROFIL, STATYSTYKI DZIAŁÓW, REKORDY I ODZNAKI
          =================================================================== -->
     <section id="view-profile" class="tab-view">
-      <!-- Karta rangi -->
-      <div class="glass rounded-3xl p-5 mb-4 text-center relative overflow-hidden">
-        <div class="text-4xl mb-1" id="profRankEmoji">🩺</div>
+      <div class="glass rounded-3xl p-5 mb-4 text-center">
+        <div class="text-4xl mb-1" id="profRankEmoji">🤒</div>
         <div class="text-xs font-bold uppercase tracking-widest text-indigo-300" id="profLevelLabel">Poziom 1</div>
-        <h2 class="text-2xl font-black text-white mt-0.5" id="profRankTitle">Pacjent Zero</h2>
+        <h2 class="text-2xl font-black text-white mt-0.5" id="profRankTitle">Początkujący</h2>
         <div class="mt-3 w-full h-2.5 bg-slate-800 rounded-full overflow-hidden">
           <div id="profXpBar" class="h-full bg-gradient-to-r from-indigo-500 via-cyan-400 to-emerald-400 transition-all duration-500" style="width: 0%"></div>
         </div>
@@ -499,17 +546,17 @@
         </div>
 
         <button onclick="copyFlexStats()" class="btn-arcade mt-4 w-full py-2.5 rounded-xl bg-indigo-500/20 border border-indigo-400/35 text-indigo-200 font-bold text-xs flex items-center justify-center gap-2">
-          <span>📋</span><span>Skopiuj statystyki i pochwal się na grupce!</span>
+          <span>📋</span><span>Skopiuj statystyki i wyślij znajomym!</span>
         </button>
       </div>
 
-      <!-- Postęp w poszczególnych lekcjach -->
+      <!-- Dynamiczny postęp według Działów i Lekcji -->
       <div class="glass rounded-3xl p-4 mb-4">
-        <h3 class="text-sm font-extrabold text-white mb-3">Postęp w lekcjach</h3>
-        <div id="lessonStatsContainer" class="space-y-3"></div>
+        <h3 class="text-sm font-extrabold text-white mb-3">Postęp w działach i lekcjach</h3>
+        <div id="lessonStatsContainer" class="space-y-4"></div>
       </div>
 
-      <!-- Rekordy w grach -->
+      <!-- Rekordy -->
       <div class="glass rounded-3xl p-4 mb-4">
         <h3 class="text-sm font-extrabold text-white mb-3">Twoje rekordy 🏆</h3>
         <div class="grid grid-cols-2 gap-2.5 text-center">
@@ -541,7 +588,6 @@
         <div id="badgesGrid" class="grid grid-cols-2 gap-2.5"></div>
       </div>
 
-      <!-- Zarządzanie danymi -->
       <button onclick="confirmResetProgress()" class="btn-arcade w-full py-3.5 rounded-2xl glass border border-rose-500/30 text-rose-400 font-bold text-sm">
         🗑️ Wyzeruj wszystkie postępy
       </button>
@@ -549,9 +595,7 @@
 
   </div>
 
-  <!-- ===================================================================
-       DOLNA NAWIGACJA (PŁYWAJĄCY DOCK JAK W APLIKACJI MOBILNEJ)
-       =================================================================== -->
+  <!-- DOLNA NAWIGACJA -->
   <nav class="fixed bottom-0 left-0 right-0 z-40 px-3 pb-3 pt-1 pointer-events-none">
     <div class="max-w-md mx-auto glass-strong rounded-3xl p-1.5 grid grid-cols-5 gap-1 shadow-2xl shadow-black/60 pointer-events-auto border border-white/10">
       <button onclick="switchTab('cards')" data-tab="cards" class="nav-tab active flex flex-col items-center justify-center py-2 rounded-2xl text-white bg-indigo-500/25 transition-all">
@@ -579,144 +623,232 @@
 
 <script>
 /* ============================================================================
-   1. BAZA SŁÓWEK – KAPITEL 5 GESUNDHEIT (KOMPLETNE 85 SŁÓWEK Z PODRĘCZNIKA)
+   1. BAZA DZIAŁÓW I LEKCJI (CURRICULUM)
+   ----------------------------------------------------------------------------
+   Struktura: Dział -> foldery Lekcji -> Słówka.
+   Gdy będziesz chciał dodać kolejny dział (np. Kapitel 6), wystarczy dopisać
+   nowy obiekt do tablicy CURRICULUM poniżej – cała strona (Fiszki, Gry, Test,
+   Słownik i Profil) zaktualizuje się automatycznie!
    ============================================================================ */
-const ALL_WORDS = [
-  // Lektion 1: Beschwerden und Krankheiten (19)
-  {id:1,  l:1, pl:"bóle brzucha", de:"die Bauchschmerzen", pluralOnly:true},
-  {id:2,  l:1, pl:"przeziębienie", de:"die Erkältung, -en"},
-  {id:3,  l:1, pl:"gorączka", de:"das Fieber"},
-  {id:4,  l:1, pl:"grypa", de:"die Grippe, -n"},
-  {id:5,  l:1, pl:"kaszel", de:"der Husten"},
-  {id:6,  l:1, pl:"bóle głowy", de:"die Kopfschmerzen", pluralOnly:true},
-  {id:7,  l:1, pl:"katar", de:"der Schnupfen"},
-  {id:8,  l:1, pl:"odpoczywać", de:"sich erholen"},
-  {id:9,  l:1, pl:"przeziębić się", de:"sich erkälten"},
-  {id:10, l:1, pl:"czuć się", de:"sich fühlen"},
-  {id:11, l:1, pl:"boleć", de:"weh|tun"},
-  {id:12, l:1, pl:"iść do apteki", de:"in die Apotheke gehen"},
-  {id:13, l:1, pl:"jechać do lekarza", de:"zum Arzt fahren"},
-  {id:14, l:1, pl:"skręcić nogę", de:"mit dem Fuß um|knicken"},
-  {id:15, l:1, pl:"zażywać lekarstwa", de:"Medikamente ein|nehmen"},
-  {id:16, l:1, pl:"spaść z krzesła", de:"vom Stuhl fallen"},
-  {id:17, l:1, pl:"Przykro mi.", de:"Es tut mir leid."},
-  {id:18, l:1, pl:"Szybkiego powrotu do zdrowia!", de:"Gute Besserung!"},
-  {id:19, l:1, pl:"Szkoda.", de:"Das ist ja schade!"},
+const CURRICULUM = [
+  {
+    id: "dzial-5",
+    name: "Dział: Kapitel 5 – Gesundheit",
+    subtitle: "Zdrowie, lekarz, lekarstwa i wypadki w domu",
+    icon: "🩺",
+    lessons: [
+      {
+        id: "k5-l1",
+        shortName: "Lektion 1",
+        name: "Lekcja 1: Dolegliwości i choroby",
+        deName: "Beschwerden und Krankheiten",
+        words: [
+          { id: 1,  pl: "bóle brzucha", de: "die Bauchschmerzen", pluralOnly: true },
+          { id: 2,  pl: "przeziębienie", de: "die Erkältung, -en" },
+          { id: 3,  pl: "gorączka", de: "das Fieber" },
+          { id: 4,  pl: "grypa", de: "die Grippe, -n" },
+          { id: 5,  pl: "kaszel", de: "der Husten" },
+          { id: 6,  pl: "bóle głowy", de: "die Kopfschmerzen", pluralOnly: true },
+          { id: 7,  pl: "katar", de: "der Schnupfen" },
+          { id: 8,  pl: "odpoczywać", de: "sich erholen" },
+          { id: 9,  pl: "przeziębić się", de: "sich erkälten" },
+          { id: 10, pl: "czuć się", de: "sich fühlen" },
+          { id: 11, pl: "boleć", de: "weh|tun" },
+          { id: 12, pl: "iść do apteki", de: "in die Apotheke gehen" },
+          { id: 13, pl: "jechać do lekarza", de: "zum Arzt fahren" },
+          { id: 14, pl: "skręcić nogę", de: "mit dem Fuß um|knicken" },
+          { id: 15, pl: "zażywać lekarstwa", de: "Medikamente ein|nehmen" },
+          { id: 16, pl: "spaść z krzesła", de: "vom Stuhl fallen" },
+          { id: 17, pl: "Przykro mi.", de: "Es tut mir leid." },
+          { id: 18, pl: "Szybkiego powrotu do zdrowia!", de: "Gute Besserung!" },
+          { id: 19, pl: "Szkoda.", de: "Das ist ja schade!" }
+        ]
+      },
+      {
+        id: "k5-l2",
+        shortName: "Lektion 2",
+        name: "Lekcja 2: U lekarza",
+        deName: "Beim Arzt",
+        words: [
+          { id: 20, pl: "antybiotyk", de: "das Antibiotikum, Antibiotika" },
+          { id: 21, pl: "lekarz", de: "der Arzt, -̈e" },
+          { id: 22, pl: "zwolnienie lekarskie", de: "das Attest, -e" },
+          { id: 23, pl: "diagnoza", de: "die Diagnose, -n" },
+          { id: 24, pl: "usprawiedliwienie", de: "die Entschuldigung, -en" },
+          { id: 25, pl: "karta zdrowia", de: "die Gesundheitskarte, -n" },
+          { id: 26, pl: "zapalenie gardła", de: "die Halsentzündung, -en" },
+          { id: 27, pl: "bóle gardła", de: "die Halsschmerzen", pluralOnly: true },
+          { id: 28, pl: "lekarz rodzinny", de: "der Hausarzt, -̈e" },
+          { id: 29, pl: "gabinet lekarski", de: "die Praxis, Praxen" },
+          { id: 30, pl: "recepta", de: "das Rezept, -e" },
+          { id: 31, pl: "syrop", de: "der Sirup, -e / -s" },
+          { id: 32, pl: "godziny przyjęć", de: "die Sprechstunde, -n" },
+          { id: 33, pl: "tabletka", de: "die Tablette, -n" },
+          { id: 34, pl: "termin", de: "der Termin, -e" },
+          { id: 35, pl: "rozbierać się", de: "sich frei|machen" },
+          { id: 36, pl: "badać", de: "untersuchen" },
+          { id: 37, pl: "przepisywać (receptę)", de: "verschreiben" },
+          { id: 38, pl: "zwolnienie lekarskie do szkoły", de: "ein Attest für die Schule" },
+          { id: 39, pl: "przyjść do kontroli", de: "zur Kontrolle kommen" },
+          { id: 40, pl: "przyjść na wizytę", de: "in die Sprechstunde kommen" },
+          { id: 41, pl: "umówić termin", de: "einen Termin aus|machen" }
+        ]
+      },
+      {
+        id: "k5-l3",
+        shortName: "Lektion 3",
+        name: "Lekcja 3: Lekarstwa",
+        deName: "Medikamente",
+        words: [
+          { id: 42, pl: "saszetka z lekiem", de: "der Beutel, -" },
+          { id: 43, pl: "lekarstwo", de: "das Medikament, -e" },
+          { id: 44, pl: "krople do nosa", de: "die Nasentropfen", pluralOnly: true },
+          { id: 45, pl: "proszek", de: "das Pulver, -" },
+          { id: 46, pl: "tabletka przeciwbólowa", de: "die Schmerztablette, -n" },
+          { id: 47, pl: "kropla", de: "der Tropfen, -" },
+          { id: 48, pl: "rozpuszczać", de: "auf|lösen" },
+          { id: 49, pl: "dawkować", de: "dosieren" },
+          { id: 50, pl: "ssać", de: "lutschen" },
+          { id: 51, pl: "połykać", de: "schlucken" },
+          { id: 52, pl: "bez recepty", de: "rezeptfrei" },
+          { id: 53, pl: "raz", de: "einmal" },
+          { id: 54, pl: "trzy razy dziennie", de: "dreimal täglich" },
+          { id: 55, pl: "co cztery godziny", de: "alle vier Stunden" },
+          { id: 56, pl: "przed jedzeniem", de: "vor dem Essen" },
+          { id: 57, pl: "po jedzeniu", de: "nach dem Essen" },
+          { id: 58, pl: "tabletki na grypę", de: "Tabletten gegen Grippe" }
+        ]
+      },
+      {
+        id: "k5-l4",
+        shortName: "Lektion 4",
+        name: "Lekcja 4: Wypadki w domu",
+        deName: "Unfälle zu Hause",
+        words: [
+          { id: 59, pl: "ręka", de: "der Arm, -e" },
+          { id: 60, pl: "krew", de: "das Blut" },
+          { id: 61, pl: "palec", de: "der Finger, -" },
+          { id: 62, pl: "nóż", de: "das Messer, -" },
+          { id: 63, pl: "nieszczęście", de: "das Unglück, -e" },
+          { id: 64, pl: "pech", de: "das Pech" },
+          { id: 65, pl: "uważać", de: "auf|passen" },
+          { id: 66, pl: "poślizgnąć się", de: "aus|rutschen" },
+          { id: 67, pl: "śpieszyć się", de: "sich beeilen" },
+          { id: 68, pl: "krwawić", de: "bluten" },
+          { id: 69, pl: "brać prysznic", de: "duschen" },
+          { id: 70, pl: "koncentrować się", de: "sich konzentrieren" },
+          { id: 71, pl: "wydarzyć się", de: "passieren" },
+          { id: 72, pl: "spadać", de: "runter|fallen" },
+          { id: 73, pl: "zaciąć się", de: "sich schneiden" },
+          { id: 74, pl: "wylewać", de: "schütten" },
+          { id: 75, pl: "poparzyć się", de: "sich verbrennen" },
+          { id: 76, pl: "niebezpieczny", de: "gefährlich" },
+          { id: 77, pl: "ostry", de: "scharf" },
+          { id: 78, pl: "mocny", de: "stark" },
+          { id: 79, pl: "głęboki", de: "tief" },
+          { id: 80, pl: "ostrożny", de: "vorsichtig" },
+          { id: 81, pl: "spaść z krzesła", de: "vom Stuhl runter|fallen" },
+          { id: 82, pl: "stanąć na krzesło", de: "sich auf einen Stuhl stellen" },
+          { id: 83, pl: "zaciąć się głęboko", de: "sich tief schneiden" },
+          { id: 84, pl: "Uwaga!", de: "Vorsicht!" },
+          { id: 85, pl: "Bądź ostrożny!", de: "Sei vorsichtig!" }
+        ]
+      }
+    ]
+  }
+  /* ==========================================================================
+     SZABLON DO DODAWANIA KOLEJNYCH DZIAŁÓW W PRZYSZŁOŚCI:
+     Skopiuj poniższy blok, wstaw przecinek po klamrze zamykającej poprzedni
+     dział, odkomentuj i wpisz nowe słówka z kolejnymi ID (np. 101, 102...):
 
-  // Lektion 2: Beim Arzt (22)
-  {id:20, l:2, pl:"antybiotyk", de:"das Antibiotikum, Antibiotika"},
-  {id:21, l:2, pl:"lekarz", de:"der Arzt, -̈e"},
-  {id:22, l:2, pl:"zwolnienie lekarskie", de:"das Attest, -e"},
-  {id:23, l:2, pl:"diagnoza", de:"die Diagnose, -n"},
-  {id:24, l:2, pl:"usprawiedliwienie", de:"die Entschuldigung, -en"},
-  {id:25, l:2, pl:"karta zdrowia", de:"die Gesundheitskarte, -n"},
-  {id:26, l:2, pl:"zapalenie gardła", de:"die Halsentzündung, -en"},
-  {id:27, l:2, pl:"bóle gardła", de:"die Halsschmerzen", pluralOnly:true},
-  {id:28, l:2, pl:"lekarz rodzinny", de:"der Hausarzt, -̈e"},
-  {id:29, l:2, pl:"gabinet lekarski", de:"die Praxis, Praxen"},
-  {id:30, l:2, pl:"recepta", de:"das Rezept, -e"},
-  {id:31, l:2, pl:"syrop", de:"der Sirup, -e / -s"},
-  {id:32, l:2, pl:"godziny przyjęć", de:"die Sprechstunde, -n"},
-  {id:33, l:2, pl:"tabletka", de:"die Tablette, -n"},
-  {id:34, l:2, pl:"termin", de:"der Termin, -e"},
-  {id:35, l:2, pl:"rozbierać się", de:"sich frei|machen"},
-  {id:36, l:2, pl:"badać", de:"untersuchen"},
-  {id:37, l:2, pl:"przepisywać (receptę)", de:"verschreiben"},
-  {id:38, l:2, pl:"zwolnienie lekarskie do szkoły", de:"ein Attest für die Schule"},
-  {id:39, l:2, pl:"przyjść do kontroli", de:"zur Kontrolle kommen"},
-  {id:40, l:2, pl:"przyjść na wizytę", de:"in die Sprechstunde kommen"},
-  {id:41, l:2, pl:"umówić termin", de:"einen Termin aus|machen"},
-
-  // Lektion 3: Medikamente (17)
-  {id:42, l:3, pl:"saszetka z lekiem", de:"der Beutel, -"},
-  {id:43, l:3, pl:"lekarstwo", de:"das Medikament, -e"},
-  {id:44, l:3, pl:"krople do nosa", de:"die Nasentropfen", pluralOnly:true},
-  {id:45, l:3, pl:"proszek", de:"das Pulver, -"},
-  {id:46, l:3, pl:"tabletka przeciwbólowa", de:"die Schmerztablette, -n"},
-  {id:47, l:3, pl:"kropla", de:"der Tropfen, -"},
-  {id:48, l:3, pl:"rozpuszczać", de:"auf|lösen"},
-  {id:49, l:3, pl:"dawkować", de:"dosieren"},
-  {id:50, l:3, pl:"ssać", de:"lutschen"},
-  {id:51, l:3, pl:"połykać", de:"schlucken"},
-  {id:52, l:3, pl:"bez recepty", de:"rezeptfrei"},
-  {id:53, l:3, pl:"raz", de:"einmal"},
-  {id:54, l:3, pl:"trzy razy dziennie", de:"dreimal täglich"},
-  {id:55, l:3, pl:"co cztery godziny", de:"alle vier Stunden"},
-  {id:56, l:3, pl:"przed jedzeniem", de:"vor dem Essen"},
-  {id:57, l:3, pl:"po jedzeniu", de:"nach dem Essen"},
-  {id:58, l:3, pl:"tabletki na grypę", de:"Tabletten gegen Grippe"},
-
-  // Lektion 4: Unfälle zu Hause (27)
-  {id:59, l:4, pl:"ręka", de:"der Arm, -e"},
-  {id:60, l:4, pl:"krew", de:"das Blut"},
-  {id:61, l:4, pl:"palec", de:"der Finger, -"},
-  {id:62, l:4, pl:"nóż", de:"das Messer, -"},
-  {id:63, l:4, pl:"nieszczęście", de:"das Unglück, -e"},
-  {id:64, l:4, pl:"pech", de:"das Pech"},
-  {id:65, l:4, pl:"uważać", de:"auf|passen"},
-  {id:66, l:4, pl:"poślizgnąć się", de:"aus|rutschen"},
-  {id:67, l:4, pl:"śpieszyć się", de:"sich beeilen"},
-  {id:68, l:4, pl:"krwawić", de:"bluten"},
-  {id:69, l:4, pl:"brać prysznic", de:"duschen"},
-  {id:70, l:4, pl:"koncentrować się", de:"sich konzentrieren"},
-  {id:71, l:4, pl:"wydarzyć się", de:"passieren"},
-  {id:72, l:4, pl:"spadać", de:"runter|fallen"},
-  {id:73, l:4, pl:"zaciąć się", de:"sich schneiden"},
-  {id:74, l:4, pl:"wylewać", de:"schütten"},
-  {id:75, l:4, pl:"poparzyć się", de:"sich verbrennen"},
-  {id:76, l:4, pl:"niebezpieczny", de:"gefährlich"},
-  {id:77, l:4, pl:"ostry", de:"scharf"},
-  {id:78, l:4, pl:"mocny", de:"stark"},
-  {id:79, l:4, pl:"głęboki", de:"tief"},
-  {id:80, l:4, pl:"ostrożny", de:"vorsichtig"},
-  {id:81, l:4, pl:"spaść z krzesła", de:"vom Stuhl runter|fallen"},
-  {id:82, l:4, pl:"stanąć na krzesło", de:"sich auf einen Stuhl stellen"},
-  {id:83, l:4, pl:"zaciąć się głęboko", de:"sich tief schneiden"},
-  {id:84, l:4, pl:"Uwaga!", de:"Vorsicht!"},
-  {id:85, l:4, pl:"Bądź ostrożny!", de:"Sei vorsichtig!"}
+  ,{
+    id: "dzial-6",
+    name: "Dział: Kapitel 6 – Nazwa działu",
+    subtitle: "Krótki opis działu",
+    icon: "✈️",
+    lessons: [
+      {
+        id: "k6-l1",
+        shortName: "Lektion 1",
+        name: "Lekcja 1: Temat lekcji",
+        deName: "Niemiecka nazwa",
+        words: [
+          { id: 101, pl: "przykład", de: "das Beispiel, -e" }
+        ]
+      }
+    ]
+  }
+     ========================================================================== */
 ];
 
-const LESSON_NAMES = {
-  1: "Lektion 1: Dolegliwości",
-  2: "Lektion 2: U lekarza",
-  3: "Lektion 3: Lekarstwa",
-  4: "Lektion 4: Wypadki w domu"
-};
+// Automatyczne spłaszczenie wszystkich działów i lekcji do płaskiej listy słówek
+const ALL_WORDS = [];
+CURRICULUM.forEach(ch => {
+  ch.lessons.forEach(les => {
+    les.words.forEach(w => {
+      ALL_WORDS.push({
+        ...w,
+        chapterId: ch.id,
+        chapterName: ch.name,
+        lessonId: les.id,
+        lessonName: les.name,
+        lessonShort: les.shortName
+      });
+    });
+  });
+});
+
+// Pomocnik pobierania słówek na podstawie zakresu (all / chapter:ID / lesson:ID / hard / unlearned)
+function getWordsByScope(scope) {
+  if (!scope || scope === "all") return [...ALL_WORDS];
+  if (scope === "hard") return ALL_WORDS.filter(w => state.hard.includes(w.id));
+  if (scope === "unlearned") return ALL_WORDS.filter(w => !state.mastered.includes(w.id));
+  if (scope.startsWith("chapter:")) {
+    const chId = scope.slice(8);
+    return ALL_WORDS.filter(w => w.chapterId === chId);
+  }
+  if (scope.startsWith("lesson:")) {
+    const lId = scope.slice(7);
+    return ALL_WORDS.filter(w => w.lessonId === lId);
+  }
+  return [...ALL_WORDS];
+}
 
 const RANKS = [
-  { xp: 0,    lv: 1, title: "Pacjent Zero",       emoji: "🤒" },
-  { xp: 150,  lv: 2, title: "Praktykant Apteki",  emoji: "💊" },
-  { xp: 400,  lv: 3, title: "Ratownik Medyczny",  emoji: "🚑" },
-  { xp: 800,  lv: 4, title: "Doktor Haus",        emoji: "🩺" },
-  { xp: 1400, lv: 5, title: "Ordynator Oddziału", emoji: "🏥" },
-  { xp: 2200, lv: 6, title: "Prof. Gesundheit",   emoji: "🧠" },
-  { xp: 3500, lv: 7, title: "Deutsch Legenda",    emoji: "👑" }
+  { xp: 0,    lv: 1, title: "Początkujący",       emoji: "🌱" },
+  { xp: 150,  lv: 2, title: "Uczeń na Starcie",   emoji: "📘" },
+  { xp: 400,  lv: 3, title: "Łowca Słówek",       emoji: "⚡" },
+  { xp: 800,  lv: 4, title: "Pogromca Kartkówek", emoji: "🔥" },
+  { xp: 1400, lv: 5, title: "Mistrz Rodzajników", emoji: "🎯" },
+  { xp: 2200, lv: 6, title: "Profesor Niemca",    emoji: "🧠" },
+  { xp: 3500, lv: 7, title: "Legenda Fiszek",     emoji: "👑" }
 ];
 
 const BADGES_DEF = [
-  { id: "first10",   icon: "🌱", name: "Pierwsza Dycha",    desc: "Opanuj 10 słówek w fiszkach" },
-  { id: "halfway",   icon: "🔥", name: "Półmetek",          desc: "Opanuj połowę rozdziału (43+)" },
-  { id: "master85",  icon: "👑", name: "Król Rozdziału",    desc: "Opanuj wszystkie 85 słówek!" },
-  { id: "quizPro",   icon: "🎓", name: "Piątkowy Uczeń",    desc: "Zdobądź min. 90% w Teście" },
+  { id: "first10",   icon: "🌱", name: "Pierwsza Dycha",      desc: "Opanuj 10 słówek w fiszkach" },
+  { id: "halfway",   icon: "🔥", name: "Półmetek",            desc: "Opanuj połowę dostępnych słówek" },
+  { id: "masterAll", icon: "👑", name: "Król Słówek",         desc: "Opanuj wszystkie słówka z bazy!" },
+  { id: "quizPro",   icon: "🎓", name: "Piątkowy Uczeń",      desc: "Zdobądź min. 90% w Teście" },
   { id: "article15", icon: "🎯", name: "Snajper Rodzajników", desc: "Zdobądź 15+ pkt w Der/Die/Das" },
-  { id: "matchFast", icon: "⚡", name: "Szybkie Palce",     desc: "Ukończ Łączenie Par poniżej 45s" },
-  { id: "speed20",   icon: "☄️", name: "Refleks Mistrza",   desc: "Zdobądź 20+ pkt w Szybkiej Piłce" },
-  { id: "scramble10",icon: "🧩", name: "Architekt Zdań",    desc: "Ułóż 10 słówek w Układance" }
+  { id: "matchFast", icon: "⚡", name: "Szybkie Palce",       desc: "Ukończ Łączenie Par poniżej 45s" },
+  { id: "speed20",   icon: "☄️", name: "Refleks Mistrza",     desc: "Zdobądź 20+ pkt w Szybkiej Piłce" },
+  { id: "scramble10",icon: "🧩", name: "Architekt Zdań",      desc: "Ułóż 10 słówek w Układance" }
 ];
 
 /* ============================================================================
-   2. STAN APLIKACJI I TRWAŁY ZAPIS (localStorage + migracja ze starej wersji)
+   2. STAN APLIKACJI I ZAPIS W localStorage (PEŁNA KOMPATYBILNOŚĆ WSTECZNA)
    ============================================================================ */
 const STORAGE_KEY = "deutsch_arcade_k5_v2";
 
 let state = {
-  mastered: [],      // tablica ID opanowanych słówek
-  hard: [],          // tablica ID słówek do powtórki
+  mastered: [],
+  hard: [],
   xp: 0,
   soundEnabled: true,
   autoSpeak: false,
   plToDe: true,
   badges: [],
+  collapsedChapters: [],
   records: {
     matchBestSec: null,
     articleBest: 0,
@@ -734,10 +866,10 @@ function loadState() {
       state = {
         ...state,
         ...parsed,
+        collapsedChapters: parsed.collapsedChapters || [],
         records: { ...state.records, ...(parsed.records || {}) }
       };
     } else {
-      // Migracja danych z poprzedniej wersji strony (jeśli użytkownik już z niej korzystał)
       const oldM = JSON.parse(localStorage.getItem("k5_mastered") || "[]");
       const oldH = JSON.parse(localStorage.getItem("k5_hard") || "[]");
       if (oldM.length || oldH.length) {
@@ -762,7 +894,7 @@ function saveState() {
 }
 
 /* ============================================================================
-   3. SILNIK DŹWIĘKOWY (Tone.js) ORAZ LEKTOR NIEMIECKI (SpeechSynthesis)
+   3. SILNIK DŹWIĘKOWY (Tone.js) I LEKTOR NIEMIECKI (SpeechSynthesis)
    ============================================================================ */
 let audioReady = false;
 let mainSynth = null;
@@ -772,9 +904,7 @@ async function ensureAudio() {
   if (!state.soundEnabled) return false;
   try {
     if (typeof Tone === "undefined") return false;
-    if (Tone.context.state !== "running") {
-      await Tone.start();
-    }
+    if (Tone.context.state !== "running") await Tone.start();
     if (!audioReady) {
       mainSynth = new Tone.Synth({
         oscillator: { type: "triangle" },
@@ -787,7 +917,6 @@ async function ensureAudio() {
         envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.45 }
       }).toDestination();
       polySynth.volume.value = -10;
-
       audioReady = true;
     }
     return true;
@@ -812,7 +941,6 @@ const SFX = {
   async ok(combo = 1) {
     if (!(await ensureAudio())) return;
     try {
-      // Im wyższe combo, tym wyższy, bardziej satysfakcjonujący dźwięk!
       const notes = ["C5", "D5", "E5", "G5", "A5", "C6", "D6", "E6"];
       const idx = Math.min(Math.max(0, combo - 1), notes.length - 2);
       const now = Tone.now();
@@ -856,7 +984,7 @@ function speakGerman(deText) {
 }
 
 /* ============================================================================
-   4. KONFETTI (RESPONSYWNY CANVAS) + SYSTEM POWIADOMIEŃ I MODALI
+   4. KONFETTI, TOASTY I CUSTOMOWY MODAL
    ============================================================================ */
 const confettiCanvas = document.getElementById("confettiCanvas");
 const cCtx = confettiCanvas.getContext("2d");
@@ -905,12 +1033,8 @@ function animateConfetti() {
     cCtx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.65);
     cCtx.restore();
   });
-
-  if (confettiPieces.length > 0) {
-    confettiAnimId = requestAnimationFrame(animateConfetti);
-  } else {
-    confettiAnimId = null;
-  }
+  if (confettiPieces.length > 0) confettiAnimId = requestAnimationFrame(animateConfetti);
+  else confettiAnimId = null;
 }
 
 function showToast(msg, icon = "✨", tone = "indigo") {
@@ -956,7 +1080,7 @@ function closeModal() {
 }
 
 /* ============================================================================
-   5. SYSTEM XP, POZIOMÓW, ODZNAK I FORMATOWANIA
+   5. XP, POZIOMY, ODZNAKI I FORMATOWANIE
    ============================================================================ */
 function getRankInfo(xp) {
   let current = RANKS[0];
@@ -999,8 +1123,8 @@ function unlockBadge(id) {
 
 function checkBadges() {
   if (state.mastered.length >= 10) unlockBadge("first10");
-  if (state.mastered.length >= 43) unlockBadge("halfway");
-  if (state.mastered.length >= ALL_WORDS.length) unlockBadge("master85");
+  if (state.mastered.length >= Math.ceil(ALL_WORDS.length / 2)) unlockBadge("halfway");
+  if (state.mastered.length >= ALL_WORDS.length) unlockBadge("masterAll");
   if (state.records.quizBestPct !== null && state.records.quizBestPct >= 90) unlockBadge("quizPro");
   if (state.records.articleBest >= 15) unlockBadge("article15");
   if (state.records.matchBestSec !== null && state.records.matchBestSec <= 45) unlockBadge("matchFast");
@@ -1015,19 +1139,12 @@ function formatDe(text) {
   return text;
 }
 
-function getFilteredPool(lessonVal) {
-  if (lessonVal === "all") return [...ALL_WORDS];
-  return ALL_WORDS.filter(w => String(w.l) === String(lessonVal));
-}
-
 function updateHeaderUI() {
   const { current, next } = getRankInfo(state.xp);
   document.getElementById("hdrLevelBadge").innerText = `Lv.${current.lv}`;
   document.getElementById("hdrXpText").innerText = `${state.xp} XP`;
   let pct = 100;
-  if (next) {
-    pct = Math.min(100, Math.round(((state.xp - current.xp) / (next.xp - current.xp)) * 100));
-  }
+  if (next) pct = Math.min(100, Math.round(((state.xp - current.xp) / (next.xp - current.xp)) * 100));
   document.getElementById("hdrXpBar").style.width = `${pct}%`;
 
   document.getElementById("soundToggleBtn").innerText = state.soundEnabled ? "🔊" : "🔇";
@@ -1051,7 +1168,9 @@ function toggleDirection() {
   SFX.click();
   state.plToDe = !state.plToDe;
   saveState();
-  renderFlashcard();
+  if (!document.getElementById("cardsStudyView").classList.contains("hidden")) {
+    renderFlashcard(true);
+  }
   showToast(state.plToDe ? "Kierunek: Polski ➔ Niemiecki" : "Kierunek: Niemiecki ➔ Polski", "🔄");
 }
 
@@ -1063,7 +1182,33 @@ function toggleAutoSpeak() {
 }
 
 /* ============================================================================
-   6. NAWIGACJA POMIĘDZY ZAKŁADKAMI
+   6. DYNAMICZNE LISTY WYBORU DZIAŁÓW I LEKCJI (DLA GIER, TESTU I SŁOWNIKA)
+   ============================================================================ */
+function populateScopeSelects() {
+  const buildOptions = () => {
+    let html = "";
+    if (CURRICULUM.length > 1) {
+      html += `<option value="all" class="bg-slate-900">Wszystkie działy (${ALL_WORDS.length} słówek)</option>`;
+    }
+    CURRICULUM.forEach(ch => {
+      const chWords = getWordsByScope(`chapter:${ch.id}`);
+      html += `<optgroup label="📁 ${ch.name}" class="bg-slate-900 text-slate-300">`;
+      html += `<option value="chapter:${ch.id}" class="bg-slate-900 text-white">📁 Cały dział: ${ch.name.replace(/^Dział:\s*/i, "")} (${chWords.length})</option>`;
+      ch.lessons.forEach(les => {
+        html += `<option value="lesson:${les.id}" class="bg-slate-900 text-white">&nbsp;&nbsp;📂 ${les.name} (${les.words.length})</option>`;
+      });
+      html += `</optgroup>`;
+    });
+    return html;
+  };
+
+  const optionsHtml = buildOptions();
+  document.getElementById("gameScopeSelect").innerHTML = optionsHtml;
+  document.getElementById("quizScopeSelect").innerHTML = optionsHtml;
+}
+
+/* ============================================================================
+   7. NAWIGACJA POMIĘDZY ZAKŁADKAMI
    ============================================================================ */
 let activeTimers = [];
 
@@ -1076,7 +1221,6 @@ function switchTab(tabName) {
   SFX.click();
   clearAllGameTimers();
 
-  // Zawsze wróć do menu gier jeśli wychodzimy ze strefy gier
   if (tabName !== "games") {
     document.getElementById("activeGameArea").classList.add("hidden");
     document.getElementById("gamesMenu").classList.remove("hidden");
@@ -1093,98 +1237,241 @@ function switchTab(tabName) {
     btn.classList.toggle("text-slate-400", !isTarget);
   });
 
-  if (tabName === "cards") { updateFlashcardStats(); renderFlashcard(); }
-  if (tabName === "games") { updateGamesMenuRecords(); }
-  if (tabName === "dict")  { renderDict(); }
+  if (tabName === "cards")   { renderCurriculumTree(); }
+  if (tabName === "games")   { updateGamesMenuRecords(); }
+  if (tabName === "dict")    { buildDictFilterPills(); renderDict(); }
   if (tabName === "profile") { renderProfile(); }
 }
 
 /* ============================================================================
-   7. MODUŁ 1: INTERAKTYWNE FISZKI ZE SWIPE'OWANIEM (TINDER STYLE)
+   8. MODUŁ 1: DRZEWO DZIAŁÓW -> LEKCJI ORAZ NAPRAWIONE FISZKI 3D
    ============================================================================ */
-let cardDeck = [...ALL_WORDS];
+let activeCardScope = "all";
+let activeCardTitle = "";
+let cardDeck = [];
 let cardIdx = 0;
 let isCardFlipped = false;
+let flipLockUntil = 0;
 
-function updateFlashcardStats() {
-  const m = state.mastered.length;
-  const h = state.hard.length;
-  document.getElementById("cardsMasteredStat").innerText = `✓ Opanowane: ${m} / ${ALL_WORDS.length}`;
-  document.getElementById("cardsHardStat").innerText = `🔥 Powtórki: ${h}`;
-  document.getElementById("cardsProgressBar").style.width = `${Math.round((m / ALL_WORDS.length) * 100)}%`;
+function renderCurriculumTree() {
+  const total = ALL_WORDS.length;
+  const masteredCount = state.mastered.length;
+  const hardCount = state.hard.length;
+  const unlearnedCount = total - masteredCount;
+
+  document.getElementById("globalMasteredStat").innerText = `✓ Opanowane: ${masteredCount} / ${total}`;
+  document.getElementById("globalHardStat").innerText = `🔥 Do powtórki: ${hardCount}`;
+  document.getElementById("globalProgressBar").style.width = `${Math.round((masteredCount / Math.max(1, total)) * 100)}%`;
+
+  document.getElementById("quickHardCount").innerText = `${hardCount} słówek`;
+  document.getElementById("quickUnlearnedCount").innerText = `${unlearnedCount} słówek`;
+
+  const chWord = CURRICULUM.length === 1 ? "dział" : (CURRICULUM.length < 5 ? "działy" : "działów");
+  document.getElementById("chaptersCountBadge").innerText = `${CURRICULUM.length} ${chWord}`;
+
+  const treeEl = document.getElementById("curriculumTree");
+  treeEl.innerHTML = CURRICULUM.map(ch => {
+    const chWords = getWordsByScope(`chapter:${ch.id}`);
+    const chDone = chWords.filter(w => state.mastered.includes(w.id)).length;
+    const chPct = Math.round((chDone / Math.max(1, chWords.length)) * 100);
+    const isCollapsed = state.collapsedChapters.includes(ch.id);
+
+    const lessonsHtml = ch.lessons.map(les => {
+      const lTotal = les.words.length;
+      const lDone = les.words.filter(w => state.mastered.includes(w.id)).length;
+      const lPct = Math.round((lDone / Math.max(1, lTotal)) * 100);
+      const safeTitle = les.name.replace(/'/g, "\\'");
+
+      return `
+        <button type="button" onclick="openFlashcardScope('lesson:${les.id}', '${safeTitle}')" class="btn-arcade w-full bg-slate-900/65 hover:bg-slate-800/80 border border-white/8 hover:border-indigo-400/40 rounded-2xl p-3 text-left flex items-center gap-3 transition-all">
+          <div class="w-10 h-10 rounded-xl bg-indigo-500/15 border border-indigo-400/25 flex items-center justify-center text-lg shrink-0">📂</div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between gap-2">
+              <div class="text-sm font-extrabold text-white truncate">${les.name}</div>
+              <span class="text-[11px] font-bold ${lPct === 100 ? "text-emerald-400" : "text-cyan-300"} shrink-0">${lDone}/${lTotal}</span>
+            </div>
+            <div class="text-[11px] text-slate-400 truncate mt-0.5">${les.deName}</div>
+            <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden mt-2">
+              <div class="h-full ${lPct === 100 ? "bg-emerald-400" : "bg-gradient-to-r from-indigo-500 to-cyan-400"}" style="width: ${lPct}%"></div>
+            </div>
+          </div>
+          <span class="text-slate-500 text-sm font-bold">›</span>
+        </button>
+      `;
+    }).join("");
+
+    const safeChName = ch.name.replace(/'/g, "\\'");
+
+    return `
+      <div class="glass rounded-3xl p-4 border border-white/10">
+        <!-- NAGŁÓWEK DZIAŁU (FOLDER GŁÓWNY) -->
+        <div class="flex items-start justify-between gap-2">
+          <button type="button" onclick="toggleChapterCollapse('${ch.id}')" class="flex items-center gap-3 text-left flex-1 min-w-0">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center text-2xl shrink-0 shadow-lg shadow-indigo-500/25">
+              ${ch.icon}
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-1.5">
+                <span class="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-indigo-500/25 text-indigo-300">Dział</span>
+                <span class="text-[11px] font-bold text-slate-400">${chDone}/${chWords.length} (${chPct}%)</span>
+              </div>
+              <h3 class="text-base font-black text-white truncate mt-0.5">${ch.name.replace(/^Dział:\s*/i, "")}</h3>
+              <p class="text-[11px] text-slate-400 truncate">${ch.subtitle}</p>
+            </div>
+          </button>
+
+          <button type="button" onclick="toggleChapterCollapse('${ch.id}')" class="btn-arcade w-8 h-8 rounded-xl bg-white/5 flex items-center justify-center text-xs text-slate-300 shrink-0 mt-1">
+            ${isCollapsed ? "▸" : "▾"}
+          </button>
+        </div>
+
+        <!-- Pasek postępu całego działu + przycisk "Ucz się całego działu" -->
+        <div class="mt-3 flex items-center gap-3">
+          <div class="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden">
+            <div class="h-full bg-gradient-to-r from-indigo-500 via-cyan-400 to-emerald-400 transition-all duration-500" style="width: ${chPct}%"></div>
+          </div>
+          <button type="button" onclick="openFlashcardScope('chapter:${ch.id}', '${safeChName}')" class="btn-arcade px-3 py-1.5 rounded-xl bg-indigo-500/25 border border-indigo-400/35 text-indigo-200 font-extrabold text-[11px] shrink-0">
+            Cały dział ▶
+          </button>
+        </div>
+
+        <!-- ZAGNIEŻDŻONE FOLDERY LEKCJI POD DZIAŁEM -->
+        <div class="${isCollapsed ? "hidden" : "block"} mt-3.5 ml-4 pl-3.5 border-l-2 border-indigo-500/30 space-y-2">
+          ${lessonsHtml}
+        </div>
+      </div>
+    `;
+  }).join("");
 }
 
-function filterFlashcards() {
+function toggleChapterCollapse(chId) {
   SFX.click();
-  const val = document.getElementById("lessonSelect").value;
-  if (val === "all") cardDeck = [...ALL_WORDS];
-  else if (val === "hard") cardDeck = ALL_WORDS.filter(w => state.hard.includes(w.id));
-  else if (val === "unlearned") cardDeck = ALL_WORDS.filter(w => !state.mastered.includes(w.id));
-  else cardDeck = ALL_WORDS.filter(w => String(w.l) === val);
+  if (state.collapsedChapters.includes(chId)) {
+    state.collapsedChapters = state.collapsedChapters.filter(id => id !== chId);
+  } else {
+    state.collapsedChapters.push(chId);
+  }
+  saveState();
+  renderCurriculumTree();
+}
+
+function openFlashcardScope(scope, title) {
+  SFX.click();
+  activeCardScope = scope;
+  activeCardTitle = title;
+  cardDeck = getWordsByScope(scope);
   cardIdx = 0;
-  renderFlashcard();
+
+  if (cardDeck.length === 0) {
+    showToast("Ten folder jest pusty! Wszystkie słówka ogarnięte 🎉", "✨", "emerald");
+    return;
+  }
+
+  document.getElementById("activeScopeTitle").innerText = title;
+  document.getElementById("cardsFolderView").classList.add("hidden");
+  document.getElementById("cardsStudyView").classList.remove("hidden");
+  renderFlashcard(true);
+}
+
+function closeFlashcardStudy() {
+  SFX.click();
+  document.getElementById("cardsStudyView").classList.add("hidden");
+  document.getElementById("cardsFolderView").classList.remove("hidden");
+  renderCurriculumTree();
 }
 
 function shuffleFlashcards() {
   SFX.flip();
   cardDeck.sort(() => Math.random() - 0.5);
   cardIdx = 0;
-  renderFlashcard();
+  renderFlashcard(true);
   showToast("Fiszki przetasowane!", "🔀");
 }
 
-function renderFlashcard() {
-  const cardEl = document.getElementById("flashcard");
-  isCardFlipped = false;
-  cardEl.classList.remove("flipped");
-  updateFlashcardStats();
-
-  setTimeout(() => {
-    if (cardDeck.length === 0) {
-      document.getElementById("cardLessonBadge").innerText = "Pusto 🎉";
-      document.getElementById("cardFrontWord").innerHTML = "Wszystko w tej kategorii ogarnięte!";
-      document.getElementById("cardFrontSub").innerText = "Zmień filtr powyżej, żeby uczyć się dalej";
-      document.getElementById("cardBackWord").innerHTML = "Brawo! 🔥";
-      document.getElementById("cardAudioFront").style.display = "none";
-      document.getElementById("cardAudioBack").style.display = "none";
-      document.getElementById("cardTipArea").innerHTML = "";
-      return;
-    }
-
-    if (cardIdx >= cardDeck.length) cardIdx = 0;
-    const item = cardDeck[cardIdx];
-
-    const statusIcon = state.mastered.includes(item.id) ? " ✓" : state.hard.includes(item.id) ? " 🔥" : "";
-    document.getElementById("cardLessonBadge").innerText = `Lektion ${item.l} • ${cardIdx + 1}/${cardDeck.length}${statusIcon}`;
-    document.getElementById("cardBackBadge").innerText = state.plToDe ? "Niemiecki" : "Polski";
-    document.getElementById("cardFrontSub").innerText = "Dotknij, aby odwrócić • Przesuń ⬅️ / ➡️";
-
-    if (state.plToDe) {
-      document.getElementById("cardFrontWord").innerHTML = item.pl;
-      document.getElementById("cardBackWord").innerHTML = formatDe(item.de);
-      document.getElementById("cardAudioFront").style.display = "none";
-      document.getElementById("cardAudioBack").style.display = "flex";
-    } else {
-      document.getElementById("cardFrontWord").innerHTML = formatDe(item.de);
-      document.getElementById("cardBackWord").innerHTML = item.pl;
-      document.getElementById("cardAudioFront").style.display = "flex";
-      document.getElementById("cardAudioBack").style.display = "none";
-    }
-
-    // Podpowiedzi gramatyczne na odwrocie
-    let tips = [];
-    if (item.de.includes("|")) tips.push(`<span class="px-2.5 py-1 rounded-lg bg-cyan-500/15 text-cyan-300 text-[11px] font-bold">Czasownik rozdzielnie złożony</span>`);
-    if (item.pluralOnly) tips.push(`<span class="px-2.5 py-1 rounded-lg bg-pink-500/15 text-pink-300 text-[11px] font-bold">Tylko liczba mnoga (die)</span>`);
-    if (item.de.includes(",")) tips.push(`<span class="px-2.5 py-1 rounded-lg bg-indigo-500/15 text-indigo-300 text-[11px] font-bold">Po przecinku: liczba mnoga</span>`);
-    document.getElementById("cardTipArea").innerHTML = tips.join("");
-  }, 90);
+function updateStudyStats() {
+  const scopeAll = getWordsByScope(activeCardScope);
+  const totalInDeck = cardDeck.length;
+  const doneInDeck = cardDeck.filter(w => state.mastered.includes(w.id)).length;
+  document.getElementById("studyCounterText").innerText =
+    totalInDeck > 0 ? `Fiszka ${cardIdx + 1} / ${totalInDeck}` : "Koniec folderu!";
+  document.getElementById("studyMasteredText").innerText =
+    `Opanowane: ${doneInDeck} / ${Math.max(totalInDeck, scopeAll.length)}`;
+  document.getElementById("studyProgressBar").style.width =
+    totalInDeck > 0 ? `${Math.round(((cardIdx + 1) / totalInDeck) * 100)}%` : "100%";
 }
 
+/**
+ * Renderuje bieżącą fiszkę.
+ * Parametr instantReset=true natychmiast ustawia kartę na przód bez zawrotnego obracania,
+ * dzięki czemu przejście na nowe słówko jest czyste i czytelne.
+ */
+function renderFlashcard(instantReset = true) {
+  const cardEl = document.getElementById("flashcard");
+
+  if (instantReset) {
+    cardEl.style.transition = "none";
+    isCardFlipped = false;
+    cardEl.classList.remove("is-flipped");
+    void cardEl.offsetWidth; // wymuszenie reflow, aby reset był natychmiastowy
+    cardEl.style.transition = "";
+  }
+
+  updateStudyStats();
+
+  if (cardDeck.length === 0) {
+    document.getElementById("cardFrontBadge").innerText = "Gotowe 🎉";
+    document.getElementById("cardFrontWord").innerHTML = "Wszystko w tym folderze opanowane!";
+    document.getElementById("cardFrontSub").innerText = "Wróć do działów i wybierz kolejną lekcję";
+    document.getElementById("cardBackWord").innerHTML = "Świetna robota! 🔥";
+    document.getElementById("cardAudioFront").style.display = "none";
+    document.getElementById("cardAudioBack").style.display = "none";
+    document.getElementById("cardTipArea").innerHTML = "";
+    return;
+  }
+
+  if (cardIdx < 0) cardIdx = cardDeck.length - 1;
+  if (cardIdx >= cardDeck.length) cardIdx = 0;
+
+  const item = cardDeck[cardIdx];
+  const statusMark = state.mastered.includes(item.id) ? " ✓" : state.hard.includes(item.id) ? " 🔥" : "";
+
+  document.getElementById("cardFrontBadge").innerText = `${item.lessonShort} • ${state.plToDe ? "Polski" : "Niemiecki"}${statusMark}`;
+  document.getElementById("cardBackBadge").innerText = state.plToDe ? "Tłumaczenie (DE)" : "Tłumaczenie (PL)";
+  document.getElementById("cardFrontSub").innerText = "Dotknij kartę, żeby zobaczyć tłumaczenie";
+
+  if (state.plToDe) {
+    document.getElementById("cardFrontWord").innerHTML = item.pl;
+    document.getElementById("cardBackWord").innerHTML = formatDe(item.de);
+    document.getElementById("cardAudioFront").style.display = "none";
+    document.getElementById("cardAudioBack").style.display = "flex";
+  } else {
+    document.getElementById("cardFrontWord").innerHTML = formatDe(item.de);
+    document.getElementById("cardBackWord").innerHTML = item.pl;
+    document.getElementById("cardAudioFront").style.display = "flex";
+    document.getElementById("cardAudioBack").style.display = "none";
+  }
+
+  // Wskazówki gramatyczne na odwrocie
+  let tips = [];
+  if (item.de.includes("|")) tips.push(`<span class="px-2.5 py-1 rounded-lg bg-cyan-500/15 text-cyan-300 text-[11px] font-bold">Czasownik rozdzielnie złożony</span>`);
+  if (item.pluralOnly) tips.push(`<span class="px-2.5 py-1 rounded-lg bg-pink-500/15 text-pink-300 text-[11px] font-bold">Tylko liczba mnoga (die)</span>`);
+  if (item.de.includes(",")) tips.push(`<span class="px-2.5 py-1 rounded-lg bg-indigo-500/15 text-indigo-300 text-[11px] font-bold">Po przecinku: liczba mnoga</span>`);
+  document.getElementById("cardTipArea").innerHTML = tips.join("");
+}
+
+/**
+ * Pojedyncze, zablokowane przed podwójnym wywołaniem odwrócenie fiszki.
+ */
 function flipFlashcard() {
   if (!cardDeck.length) return;
+  const now = Date.now();
+  if (now < flipLockUntil) return;
+  flipLockUntil = now + 260;
+
   SFX.flip();
   isCardFlipped = !isCardFlipped;
-  document.getElementById("flashcard").classList.toggle("flipped", isCardFlipped);
+  document.getElementById("flashcard").classList.toggle("is-flipped", isCardFlipped);
+
   if (isCardFlipped && state.autoSpeak) {
     speakGerman(cardDeck[cardIdx].de);
   }
@@ -1196,10 +1483,16 @@ function speakCurrentCard(e) {
   speakGerman(cardDeck[cardIdx].de);
 }
 
+function stepFlashcard(delta) {
+  if (!cardDeck.length) return;
+  SFX.click();
+  cardIdx = (cardIdx + delta + cardDeck.length) % cardDeck.length;
+  renderFlashcard(true);
+}
+
 function gradeFlashcard(known) {
   if (!cardDeck.length) return;
   const item = cardDeck[cardIdx];
-  const filterVal = document.getElementById("lessonSelect").value;
 
   if (known) {
     SFX.ok(2);
@@ -1212,8 +1505,9 @@ function gradeFlashcard(known) {
     }
     state.hard = state.hard.filter(id => id !== item.id);
 
-    if (filterVal === "hard" || filterVal === "unlearned") {
+    if (activeCardScope === "hard" || activeCardScope === "unlearned") {
       cardDeck.splice(cardIdx, 1);
+      if (cardIdx >= cardDeck.length) cardIdx = 0;
     } else {
       cardIdx = (cardIdx + 1) % cardDeck.length;
     }
@@ -1221,95 +1515,106 @@ function gradeFlashcard(known) {
     SFX.bad();
     if (!state.hard.includes(item.id)) state.hard.push(item.id);
     state.mastered = state.mastered.filter(id => id !== item.id);
-    // Wrzuć trudne słówko również za kilka kart, żeby szybko wróciło
     cardIdx = (cardIdx + 1) % cardDeck.length;
   }
 
   saveState();
-  renderFlashcard();
+  renderFlashcard(true);
 }
 
-// Obsługa gestu Swipe (dotyk na telefonie + mysz na komputerze)
-(function initCardSwipe() {
-  const container = document.getElementById("swipeContainer");
+/**
+ * Zunifikowana obsługa dotyku i myszy przez Pointer Events.
+ * Eliminuje podwójne zdarzenia (touch + mouse) na telefonach, które psuły obrót fiszki!
+ */
+(function initBulletproofCardGestures() {
+  const shell = document.getElementById("swipeShell");
   const hintRight = document.getElementById("swipeHintRight");
   const hintLeft = document.getElementById("swipeHintLeft");
 
-  let startX = 0, startY = 0, currentX = 0, dragging = false, moved = false;
+  let activePointerId = null;
+  let startX = 0, startY = 0, deltaX = 0;
+  let isSwiping = false;
 
-  function onStart(x, y, target) {
-    if (target.closest("button")) return;
-    startX = x;
-    startY = y;
-    currentX = 0;
-    dragging = true;
-    moved = false;
-    container.style.transition = "none";
-  }
+  shell.addEventListener("pointerdown", (e) => {
+    if (!e.isPrimary) return;
+    if (e.target.closest("button")) return;
+    activePointerId = e.pointerId;
+    startX = e.clientX;
+    startY = e.clientY;
+    deltaX = 0;
+    isSwiping = false;
+    shell.style.transition = "none";
+    try { shell.setPointerCapture(e.pointerId); } catch (_) {}
+  });
 
-  function onMove(x, y) {
-    if (!dragging) return;
-    const dx = x - startX;
-    const dy = y - startY;
-    if (Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)) {
-      moved = true;
-      currentX = dx;
-      const rot = dx * 0.055;
-      container.style.transform = `translateX(${dx}px) rotate(${rot}deg)`;
-      const strength = Math.min(1, Math.abs(dx) / 110);
-      if (dx > 0) {
-        hintRight.style.opacity = strength;
-        hintLeft.style.opacity = 0;
-      } else {
-        hintLeft.style.opacity = strength;
-        hintRight.style.opacity = 0;
-      }
+  shell.addEventListener("pointermove", (e) => {
+    if (e.pointerId !== activePointerId) return;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+
+    // Uruchom przesuwanie dopiero przy wyraźnym ruchu poziomym
+    if (!isSwiping && Math.abs(dx) > 16 && Math.abs(dx) > Math.abs(dy) * 1.2) {
+      isSwiping = true;
     }
-  }
 
-  function onEnd() {
-    if (!dragging) return;
-    dragging = false;
+    if (isSwiping) {
+      deltaX = dx;
+      const rot = dx * 0.05;
+      shell.style.transform = `translate3d(${dx}px, 0, 0) rotate(${rot}deg)`;
+      const strength = Math.min(1, Math.abs(dx) / 110);
+      hintRight.style.opacity = dx > 0 ? strength : 0;
+      hintLeft.style.opacity = dx < 0 ? strength : 0;
+    }
+  });
+
+  function endGesture(e, cancelled) {
+    if (e.pointerId !== activePointerId) return;
+    activePointerId = null;
+    try { shell.releasePointerCapture(e.pointerId); } catch (_) {}
+
     hintRight.style.opacity = 0;
     hintLeft.style.opacity = 0;
-    container.style.transition = "transform 0.28s cubic-bezier(0.22, 1, 0.36, 1)";
 
-    if (!moved) {
-      container.style.transform = "";
+    if (cancelled) {
+      shell.style.transition = "transform 0.22s ease";
+      shell.style.transform = "";
+      return;
+    }
+
+    // Zwykłe dotknięcie (tap) -> jeden czysty obrót karty na tłumaczenie!
+    if (!isSwiping) {
+      shell.style.transform = "";
       flipFlashcard();
       return;
     }
 
-    if (currentX > 85) {
-      container.style.transform = "translateX(120%) rotate(14deg)";
+    // Przesunięcie w prawo lub w lewo -> ocena fiszki
+    shell.style.transition = "transform 0.24s cubic-bezier(0.22, 1, 0.36, 1)";
+    if (deltaX > 85) {
+      shell.style.transform = "translate3d(125%, 0, 0) rotate(14deg)";
       setTimeout(() => {
-        container.style.transition = "none";
-        container.style.transform = "";
+        shell.style.transition = "none";
+        shell.style.transform = "";
         gradeFlashcard(true);
-      }, 200);
-    } else if (currentX < -85) {
-      container.style.transform = "translateX(-120%) rotate(-14deg)";
+      }, 210);
+    } else if (deltaX < -85) {
+      shell.style.transform = "translate3d(-125%, 0, 0) rotate(-14deg)";
       setTimeout(() => {
-        container.style.transition = "none";
-        container.style.transform = "";
+        shell.style.transition = "none";
+        shell.style.transform = "";
         gradeFlashcard(false);
-      }, 200);
+      }, 210);
     } else {
-      container.style.transform = "";
+      shell.style.transform = "";
     }
   }
 
-  container.addEventListener("touchstart", e => onStart(e.touches[0].clientX, e.touches[0].clientY, e.target), { passive: true });
-  container.addEventListener("touchmove", e => onMove(e.touches[0].clientX, e.touches[0].clientY), { passive: true });
-  container.addEventListener("touchend", onEnd);
-
-  container.addEventListener("mousedown", e => onStart(e.clientX, e.clientY, e.target));
-  window.addEventListener("mousemove", e => onMove(e.clientX, e.clientY));
-  window.addEventListener("mouseup", onEnd);
+  shell.addEventListener("pointerup", (e) => endGesture(e, false));
+  shell.addEventListener("pointercancel", (e) => endGesture(e, true));
 })();
 
 /* ============================================================================
-   8. MODUŁ 2: STREFA GIER (4 MINIGRY ARCADOWE)
+   9. MODUŁ 2: STREFA GIER (4 MINIGRY ARCADOWE)
    ============================================================================ */
 function updateGamesMenuRecords() {
   document.getElementById("recMatch").innerText =
@@ -1333,22 +1638,19 @@ function exitCurrentGame() {
   updateGamesMenuRecords();
 }
 
-/* ---------- GRA 1: ŁĄCZENIE PAR (MATCH BLITZ) ---------- */
+/* ---------- GRA 1: ŁĄCZENIE PAR ---------- */
 function startMatchGame() {
   SFX.click();
   openGameArena();
-  const lessonVal = document.getElementById("gameLessonFilter").value;
-  let pool = getFilteredPool(lessonVal).sort(() => Math.random() - 0.5);
-  const totalWaves = 3;
+  const scope = document.getElementById("gameScopeSelect").value;
+  let pool = getWordsByScope(scope).sort(() => Math.random() - 0.5);
+  if (pool.length < 5) pool = [...ALL_WORDS].sort(() => Math.random() - 0.5);
+
   const pairsPerWave = 5;
+  const totalWaves = Math.min(3, Math.floor(pool.length / pairsPerWave));
   const waveWords = pool.slice(0, totalWaves * pairsPerWave);
 
-  let wave = 0;
-  let elapsed = 0;
-  let mistakes = 0;
-  let selectedTile = null;
-  let matchedInWave = 0;
-  let combo = 0;
+  let wave = 0, elapsed = 0, mistakes = 0, selectedTile = null, matchedInWave = 0, combo = 0;
 
   const timerId = setInterval(() => {
     elapsed++;
@@ -1370,8 +1672,7 @@ function startMatchGame() {
     const leftCol = [...chunk].sort(() => Math.random() - 0.5);
     const rightCol = [...chunk].sort(() => Math.random() - 0.5);
 
-    const stage = document.getElementById("gameStage");
-    stage.innerHTML = `
+    document.getElementById("gameStage").innerHTML = `
       <div class="text-center mb-3">
         <h3 class="font-extrabold text-base text-white">Połącz polskie z niemieckim</h3>
         <p class="text-[11px] text-slate-400">Klikaj pasujące pary jak najszybciej!</p>
@@ -1388,7 +1689,7 @@ function startMatchGame() {
       btn.dataset.id = w.id;
       btn.dataset.side = "pl";
       btn.innerText = w.pl;
-      btn.onclick = () => onTileTap(btn, w);
+      btn.onclick = () => onTileTap(btn);
       document.getElementById("matchLeft").appendChild(btn);
     });
 
@@ -1398,27 +1699,24 @@ function startMatchGame() {
       btn.dataset.id = w.id;
       btn.dataset.side = "de";
       btn.innerHTML = formatDe(cleanGermanForSpeech(w.de));
-      btn.onclick = () => onTileTap(btn, w);
+      btn.onclick = () => onTileTap(btn);
       document.getElementById("matchRight").appendChild(btn);
     });
   }
 
-  function onTileTap(btn, wordObj) {
+  function onTileTap(btn) {
     if (btn.disabled) return;
     if (selectedTile === btn) {
       btn.classList.remove("ring-2", "ring-cyan-400", "bg-cyan-500/20");
       selectedTile = null;
       return;
     }
-
     if (!selectedTile) {
       SFX.click();
       selectedTile = btn;
       btn.classList.add("ring-2", "ring-cyan-400", "bg-cyan-500/20");
       return;
     }
-
-    // Jeśli kliknięto tę samą kolumnę, przełącz wybór
     if (selectedTile.dataset.side === btn.dataset.side) {
       SFX.click();
       selectedTile.classList.remove("ring-2", "ring-cyan-400", "bg-cyan-500/20");
@@ -1427,7 +1725,6 @@ function startMatchGame() {
       return;
     }
 
-    // Sprawdzenie pary
     const first = selectedTile;
     selectedTile = null;
     first.classList.remove("ring-2", "ring-cyan-400", "bg-cyan-500/20");
@@ -1442,11 +1739,8 @@ function startMatchGame() {
       matchedInWave++;
       if (matchedInWave === pairsPerWave) {
         wave++;
-        if (wave < totalWaves) {
-          setTimeout(renderWave, 380);
-        } else {
-          finishMatchGame();
-        }
+        if (wave < totalWaves) setTimeout(renderWave, 380);
+        else finishMatchGame();
       }
     } else {
       combo = 0;
@@ -1485,23 +1779,19 @@ function startMatchGame() {
   renderWave();
 }
 
-/* ---------- GRA 2: DER / DIE / DAS RUSH (TRENING RODZAJNIKÓW) ---------- */
+/* ---------- GRA 2: DER / DIE / DAS RUSH ---------- */
 function startArticleGame() {
   SFX.click();
   openGameArena();
-  const lessonVal = document.getElementById("gameLessonFilter").value;
-  let nouns = getFilteredPool(lessonVal).filter(w => /^(der|die|das) /.test(w.de));
-  if (nouns.length < 5) nouns = ALL_WORDS.filter(w => /^(der|die|das) /.test(w.de));
+  const scope = document.getElementById("gameScopeSelect").value;
+  let nouns = getWordsByScope(scope).filter(w => /^(der|die|das) /.test(w.de));
+  if (nouns.length < 4) nouns = ALL_WORDS.filter(w => /^(der|die|das) /.test(w.de));
 
-  let score = 0;
-  let combo = 0;
-  let lives = 3;
-  let current = null;
-  let locked = false;
+  let score = 0, combo = 0, lives = 3, locked = false;
 
   function nextQuestion() {
     locked = false;
-    current = nouns[Math.floor(Math.random() * nouns.length)];
+    const current = nouns[Math.floor(Math.random() * nouns.length)];
     const clean = cleanGermanForSpeech(current.de);
     const article = clean.split(" ")[0];
     const nounBody = clean.slice(article.length + 1);
@@ -1585,17 +1875,15 @@ function startArticleGame() {
   nextQuestion();
 }
 
-/* ---------- GRA 3: SZYBKA PIŁKA – PRAWDA CZY FAŁSZ (45 SEKUND) ---------- */
+/* ---------- GRA 3: SZYBKA PIŁKA (45s) ---------- */
 function startSpeedTFGame() {
   SFX.click();
   openGameArena();
-  const lessonVal = document.getElementById("gameLessonFilter").value;
-  const pool = getFilteredPool(lessonVal);
+  const scope = document.getElementById("gameScopeSelect").value;
+  let pool = getWordsByScope(scope);
+  if (pool.length < 4) pool = [...ALL_WORDS];
 
-  let timeLeft = 45;
-  let score = 0;
-  let combo = 0;
-  let currentPair = null;
+  let timeLeft = 45, score = 0, combo = 0, currentPair = null;
 
   const timerId = setInterval(() => {
     timeLeft--;
@@ -1625,7 +1913,7 @@ function startSpeedTFGame() {
     `;
 
     document.getElementById("gameStage").innerHTML = `
-      <div id="speedCard" class="glass rounded-3xl p-6 text-center mb-4 animate-pop">
+      <div class="glass rounded-3xl p-6 text-center mb-4 animate-pop">
         <div class="text-[11px] font-bold uppercase tracking-widest text-slate-400 mb-3">Czy to poprawne tłumaczenie?</div>
         <div class="text-2xl font-black text-white mb-3">${formatDe(cleanGermanForSpeech(word.de))}</div>
         <div class="text-slate-500 text-lg font-bold my-1">=</div>
@@ -1679,23 +1967,18 @@ function startSpeedTFGame() {
   nextPair();
 }
 
-/* ---------- GRA 4: UKŁADANKA ZDAŃ I SŁÓW (WORD BUILDER) ---------- */
+/* ---------- GRA 4: UKŁADANKA ZDAŃ I SŁÓW ---------- */
 function startScrambleGame() {
   SFX.click();
   openGameArena();
-  const lessonVal = document.getElementById("gameLessonFilter").value;
-  let pool = getFilteredPool(lessonVal).sort(() => Math.random() - 0.5);
-  let idx = 0;
-  let sessionSolved = 0;
+  const scope = document.getElementById("gameScopeSelect").value;
+  let pool = getWordsByScope(scope).sort(() => Math.random() - 0.5);
+  let idx = 0, sessionSolved = 0;
 
-  // Inteligentny podział na kafelki (zdania na słowa, pojedyncze słowa na krótkie sylaby/klocki)
   function splitIntoTiles(deClean) {
     const words = deClean.split(" ");
-    if (words.length >= 3) {
-      return { mode: "phrase", prefix: "", tiles: words };
-    }
-    let prefix = "";
-    let core = deClean;
+    if (words.length >= 3) return { mode: "phrase", prefix: "", tiles: words };
+    let prefix = "", core = deClean;
     if (/^(der|die|das) /.test(deClean)) {
       prefix = deClean.slice(0, 3);
       core = deClean.slice(4);
@@ -1716,16 +1999,11 @@ function startScrambleGame() {
   }
 
   function renderPuzzle() {
-    if (idx >= pool.length) {
-      pool.sort(() => Math.random() - 0.5);
-      idx = 0;
-    }
+    if (idx >= pool.length) { pool.sort(() => Math.random() - 0.5); idx = 0; }
     const item = pool[idx];
     const clean = cleanGermanForSpeech(item.de);
     const { mode, prefix, tiles } = splitIntoTiles(clean);
     const targetAnswer = mode === "phrase" ? tiles.join(" ") : tiles.join("");
-
-    // Przemieszaj kafelki z unikalnymi indeksami
     const bank = tiles.map((txt, i) => ({ id: i, txt, used: false })).sort(() => Math.random() - 0.5);
     let chosen = [];
 
@@ -1733,7 +2011,6 @@ function startScrambleGame() {
       document.getElementById("gameHudRight").innerHTML = `
         <span class="px-2.5 py-1 rounded-full glass text-emerald-300">🧩 Ułożone: ${sessionSolved}</span>
       `;
-
       const prefixBadge = prefix ? `<span class="${prefix} px-2.5 py-1.5 rounded-xl bg-white/10 text-base mr-1">${prefix}</span>` : "";
 
       document.getElementById("gameStage").innerHTML = `
@@ -1743,7 +2020,6 @@ function startScrambleGame() {
           </div>
           <div class="text-xl font-black text-white mb-4">${item.pl}</div>
 
-          <!-- Pole układania -->
           <div id="answerSlot" class="min-h-[64px] rounded-2xl bg-slate-900/80 border border-indigo-400/30 p-3 flex flex-wrap items-center justify-center gap-1.5">
             ${prefixBadge}
             ${chosen.length === 0 ? `<span class="text-xs text-slate-500 font-semibold">Klikaj kafelki poniżej...</span>` : ""}
@@ -1753,7 +2029,6 @@ function startScrambleGame() {
           </div>
         </div>
 
-        <!-- Bank kafelków -->
         <div class="flex flex-wrap justify-center gap-2 mb-5">
           ${bank.map((b, bi) => `
             <button onclick="pickScrambleTile(${bi})" ${b.used ? "disabled" : ""} class="btn-arcade px-3.5 py-2.5 rounded-xl font-extrabold text-sm border transition-all ${b.used ? "opacity-20 bg-slate-800 border-transparent text-slate-500" : "glass text-white border-white/15 hover:border-emerald-400"}">
@@ -1777,7 +2052,6 @@ function startScrambleGame() {
       chosen.push(tile);
       draw();
 
-      // Sprawdź gdy użyto wszystkich kafelków
       if (chosen.length === tiles.length) {
         const built = mode === "phrase" ? chosen.map(c => c.txt).join(" ") : chosen.map(c => c.txt).join("");
         if (built === targetAnswer) {
@@ -1811,21 +2085,14 @@ function startScrambleGame() {
 
     window.hintScramble = () => {
       SFX.click();
-      // Zresetuj złe początki i dodaj kolejny poprawny kafelek
       let validLen = 0;
-      while (validLen < chosen.length && chosen[validLen].txt === tiles[validLen]) {
-        validLen++;
-      }
+      while (validLen < chosen.length && chosen[validLen].txt === tiles[validLen]) validLen++;
       for (let i = validLen; i < chosen.length; i++) chosen[i].used = false;
       chosen = chosen.slice(0, validLen);
-
       if (validLen < tiles.length) {
         const neededTxt = tiles[validLen];
         const found = bank.find(b => !b.used && b.txt === neededTxt);
-        if (found) {
-          const bIdx = bank.indexOf(found);
-          window.pickScrambleTile(bIdx);
-        }
+        if (found) window.pickScrambleTile(bank.indexOf(found));
       }
     };
 
@@ -1843,18 +2110,14 @@ function startScrambleGame() {
 }
 
 /* ============================================================================
-   9. MODUŁ 3: TEST 25 PYTAŃ (OCENY SZKOLNE 1–6 + AUTOMATYCZNE POWTÓRKI)
+   10. MODUŁ 3: TEST 25 PYTAŃ (OCENA 1–6)
    ============================================================================ */
-let quizPool = [];
-let quizIdx = 0;
-let quizScore = 0;
-let quizCombo = 0;
-let quizMistakes = [];
+let quizPool = [], quizIdx = 0, quizScore = 0, quizCombo = 0, quizMistakes = [];
 
 function startQuiz() {
   SFX.click();
-  const lessonVal = document.getElementById("quizLessonSelect").value;
-  const source = getFilteredPool(lessonVal);
+  const scope = document.getElementById("quizScopeSelect").value;
+  const source = getWordsByScope(scope);
   const count = Math.min(25, source.length);
   quizPool = [...source].sort(() => Math.random() - 0.5).slice(0, count);
   quizIdx = 0;
@@ -1948,7 +2211,7 @@ function finishQuiz() {
   const total = quizPool.length;
   const pct = Math.round((quizScore / total) * 100);
   let grade = "1";
-  let comment = "Spokojnie, dopiero się rozkręcasz! Wbij na fiszki „Do powtórki” i zaraz będzie 5.";
+  let comment = "Spokojnie, dopiero się rozkręcasz! Wbij na folder „Do powtórki” i zaraz będzie 5.";
   if (pct >= 98) { grade = "6"; comment = "TOTALNA DOMINACJA! Nauczyciel będzie w szoku 🔥👑"; }
   else if (pct >= 90) { grade = "5"; comment = "Petarda! Masz to w małym palcu 💪"; }
   else if (pct >= 75) { grade = "4"; comment = "Solidna robota! Jeszcze jedna powtórka i wpada piątka."; }
@@ -1985,23 +2248,44 @@ function finishQuiz() {
 }
 
 function practiceHardFromQuiz() {
-  document.getElementById("lessonSelect").value = "hard";
-  filterFlashcards();
   switchTab("cards");
+  openFlashcardScope("hard", "🔥 Do powtórki");
 }
 
 /* ============================================================================
-   10. MODUŁ 4: INTERAKTYWNY SŁOWNIK
+   11. MODUŁ 4: SŁOWNIK (DYNAMICZNE FILTRY Z CURRICULUM)
    ============================================================================ */
 let dictFilter = "all";
 
-function setDictFilter(val, btnEl) {
+function buildDictFilterPills() {
+  const pillsBox = document.getElementById("dictFilterPills");
+  const items = [{ val: "all", label: `Wszystkie (${ALL_WORDS.length})`, tone: "normal" }];
+
+  CURRICULUM.forEach(ch => {
+    if (CURRICULUM.length > 1) {
+      items.push({ val: `chapter:${ch.id}`, label: `${ch.icon} ${ch.name.replace(/^Dział:\s*/i, "")}`, tone: "normal" });
+    }
+    ch.lessons.forEach(les => {
+      items.push({ val: `lesson:${les.id}`, label: `📂 ${les.shortName}`, tone: "normal" });
+    });
+  });
+  items.push({ val: "hard", label: "🔥 Trudne", tone: "rose" });
+
+  pillsBox.innerHTML = items.map(it => {
+    const active = dictFilter === it.val;
+    const cls = active
+      ? "bg-indigo-500 text-white"
+      : it.tone === "rose"
+      ? "glass text-rose-300"
+      : "glass text-slate-300";
+    return `<button onclick="setDictFilter('${it.val}')" class="px-3.5 py-1.5 rounded-full text-xs font-bold shrink-0 ${cls}">${it.label}</button>`;
+  }).join("");
+}
+
+function setDictFilter(val) {
   SFX.click();
   dictFilter = val;
-  document.querySelectorAll(".dict-pill").forEach(b => {
-    b.className = "dict-pill px-3.5 py-1.5 rounded-full text-xs font-bold glass text-slate-300 shrink-0";
-  });
-  btnEl.className = "dict-pill px-3.5 py-1.5 rounded-full text-xs font-bold bg-indigo-500 text-white shrink-0";
+  buildDictFilterPills();
   renderDict();
 }
 
@@ -2022,10 +2306,7 @@ function toggleDictWordStatus(id) {
 
 function renderDict() {
   const q = document.getElementById("dictSearch").value.toLowerCase().trim();
-  let list = ALL_WORDS;
-  if (dictFilter === "hard") list = list.filter(w => state.hard.includes(w.id));
-  else if (dictFilter !== "all") list = list.filter(w => String(w.l) === dictFilter);
-
+  let list = getWordsByScope(dictFilter);
   if (q) {
     list = list.filter(w => w.pl.toLowerCase().includes(q) || w.de.toLowerCase().includes(q));
   }
@@ -2049,7 +2330,7 @@ function renderDict() {
       <div class="glass rounded-2xl px-4 py-3 flex items-center justify-between gap-3">
         <div class="min-w-0 flex-1">
           <div class="font-bold text-sm sm:text-base text-white break-words">${formatDe(w.de)}</div>
-          <div class="text-xs text-slate-400 mt-0.5">${w.pl} • <span class="text-slate-500">L${w.l}</span></div>
+          <div class="text-xs text-slate-400 mt-0.5">${w.pl} • <span class="text-slate-500">${w.lessonShort}</span></div>
         </div>
         <div class="flex items-center gap-2 shrink-0">
           <button onclick="toggleDictWordStatus(${w.id})" class="btn-arcade" title="Zmień status">${statusBadge}</button>
@@ -2061,7 +2342,7 @@ function renderDict() {
 }
 
 /* ============================================================================
-   11. MODUŁ 5: PROFIL, STATYSTYKI, ODZNAKI I KOPIOWANIE FLEXA
+   12. MODUŁ 5: PROFIL, POSTĘP DZIAŁÓW, ODZNAKI I KOPIOWANIE STATYSTYK
    ============================================================================ */
 function renderProfile() {
   const { current, next } = getRankInfo(state.xp);
@@ -2079,32 +2360,45 @@ function renderProfile() {
     document.getElementById("profNextXp").innerText = "MAX POZIOM! 👑";
   }
 
-  // Postęp w każdej lekcji
+  // Postęp pogrupowany w Działy -> Lekcje
   const lBox = document.getElementById("lessonStatsContainer");
-  lBox.innerHTML = [1, 2, 3, 4].map(l => {
-    const total = ALL_WORDS.filter(w => w.l === l).length;
-    const done = ALL_WORDS.filter(w => w.l === l && state.mastered.includes(w.id)).length;
-    const pct = Math.round((done / total) * 100);
+  lBox.innerHTML = CURRICULUM.map(ch => {
+    const chWords = getWordsByScope(`chapter:${ch.id}`);
+    const chDone = chWords.filter(w => state.mastered.includes(w.id)).length;
+    const chPct = Math.round((chDone / Math.max(1, chWords.length)) * 100);
+
+    const lesRows = ch.lessons.map(les => {
+      const done = les.words.filter(w => state.mastered.includes(w.id)).length;
+      const pct = Math.round((done / Math.max(1, les.words.length)) * 100);
+      return `
+        <div class="pl-3 border-l-2 border-indigo-500/30">
+          <div class="flex justify-between text-[11px] font-bold mb-1">
+            <span class="text-slate-300">📂 ${les.name}</span>
+            <span class="text-cyan-300">${done}/${les.words.length} (${pct}%)</span>
+          </div>
+          <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+            <div class="h-full bg-gradient-to-r from-indigo-500 to-cyan-400" style="width: ${pct}%"></div>
+          </div>
+        </div>
+      `;
+    }).join("");
+
     return `
-      <div>
-        <div class="flex justify-between text-xs font-bold mb-1">
-          <span class="text-slate-200">${LESSON_NAMES[l]}</span>
-          <span class="text-cyan-300">${done}/${total} (${pct}%)</span>
+      <div class="space-y-2.5">
+        <div class="flex justify-between items-center text-xs font-black text-white">
+          <span>${ch.icon} ${ch.name}</span>
+          <span class="text-emerald-400">${chDone}/${chWords.length} (${chPct}%)</span>
         </div>
-        <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
-          <div class="h-full bg-gradient-to-r from-indigo-500 to-cyan-400 transition-all duration-500" style="width: ${pct}%"></div>
-        </div>
+        <div class="space-y-2">${lesRows}</div>
       </div>
     `;
   }).join("");
 
-  // Rekordy
   document.getElementById("statBestMatch").innerText = state.records.matchBestSec !== null ? `${state.records.matchBestSec}s` : "—";
   document.getElementById("statBestArticle").innerText = `${state.records.articleBest} pkt`;
   document.getElementById("statBestSpeed").innerText = `${state.records.speedBest} pkt`;
   document.getElementById("statBestQuiz").innerText = state.records.quizBestPct !== null ? `${state.records.quizBestPct}%` : "—";
 
-  // Odznaki
   document.getElementById("badgeCountLabel").innerText = `${state.badges.length} / ${BADGES_DEF.length}`;
   document.getElementById("badgesGrid").innerHTML = BADGES_DEF.map(b => {
     const unlocked = state.badges.includes(b.id);
@@ -2121,9 +2415,8 @@ function renderProfile() {
 function copyFlexStats() {
   SFX.click();
   const { current } = getRankInfo(state.xp);
-  const text = `🇩🇪 Deutsch Arcade (Kapitel 5)\n${current.emoji} Lv.${current.lv} ${current.title} (${state.xp} XP)\n✅ Opanowane słówka: ${state.mastered.length}/85\n🎯 Rekord Der/Die/Das: ${state.records.articleBest} pkt\n🔥 Szybka Piłka: ${state.records.speedBest} pkt\n⚡ Najlepszy Test: ${state.records.quizBestPct !== null ? state.records.quizBestPct + "%" : "jeszcze niegrany"}`;
+  const text = `🗂️ Fiszki – Niemiecki\n${current.emoji} Lv.${current.lv} ${current.title} (${state.xp} XP)\n✅ Opanowane słówka: ${state.mastered.length}/${ALL_WORDS.length}\n🎯 Rekord Der/Die/Das: ${state.records.articleBest} pkt\n🔥 Szybka Piłka: ${state.records.speedBest} pkt\n⚡ Najlepszy Test: ${state.records.quizBestPct !== null ? state.records.quizBestPct + "%" : "jeszcze niegrany"}`;
 
-  // Bezpieczne kopiowanie przez execCommand (działa również w iframe i na iOS/Android)
   const ta = document.createElement("textarea");
   ta.value = text;
   ta.style.position = "fixed";
@@ -2159,10 +2452,11 @@ function confirmResetProgress() {
             autoSpeak: state.autoSpeak,
             plToDe: state.plToDe,
             badges: [],
+            collapsedChapters: [],
             records: { matchBestSec: null, articleBest: 0, speedBest: 0, scrambleTotal: 0, quizBestPct: null }
           };
           saveState();
-          filterFlashcards();
+          renderCurriculumTree();
           renderProfile();
           showToast("Wszystkie postępy zostały wyzerowane", "🧹");
         }
@@ -2172,13 +2466,15 @@ function confirmResetProgress() {
 }
 
 /* ============================================================================
-   12. INICJALIZACJA APLIKACJI PO ZAŁADOWANIU STRONY
+   13. INICJALIZACJA APLIKACJI
    ============================================================================ */
 window.onload = function () {
   resizeConfettiCanvas();
   loadState();
+  populateScopeSelects();
   updateHeaderUI();
-  filterFlashcards();
+  renderCurriculumTree();
+  buildDictFilterPills();
   checkBadges();
 };
 </script>
