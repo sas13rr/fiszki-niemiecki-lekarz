@@ -292,81 +292,94 @@
           </div>
         </div>
 
-        <!-- Pasek postępu w bieżącej lekcji / dziale -->
+        <!-- Pasek postępu w bieżącej rundzie -->
         <div class="glass rounded-2xl px-3.5 py-2.5 mb-3">
           <div class="flex justify-between items-center text-[11px] font-bold mb-1.5">
-            <span id="studyCounterText" class="text-slate-300">Fiszka 1 / 19</span>
-            <span id="studyMasteredText" class="text-emerald-400">Opanowane: 0 / 19</span>
+            <span id="studyCounterText" class="text-slate-300">Runda 1 • Karta 1 / 19</span>
+            <span id="studyRoundStats" class="flex items-center gap-2">
+              <span class="text-emerald-400">✓ 0</span>
+              <span class="text-rose-400">✕ 0</span>
+            </span>
           </div>
           <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
             <div id="studyProgressBar" class="h-full bg-gradient-to-r from-emerald-400 to-cyan-400 transition-all duration-300" style="width: 0%"></div>
           </div>
+          <div id="studyPartialBanner" class="hidden mt-2 pt-2 border-t border-white/10 flex items-center justify-between gap-2 text-[11px]">
+            <span id="studyPartialText" class="text-cyan-300 font-semibold">Uczysz się tylko niezapamiętanych</span>
+            <button type="button" onclick="restartFullScope()" class="btn-arcade px-2.5 py-1 rounded-lg bg-white/10 text-white font-bold">Pokaż wszystkie</button>
+          </div>
         </div>
 
-        <!-- Interaktywna Fiszka 3D ze Swipe'owaniem (Pointer Events) -->
-        <div class="relative mb-3">
-          <!-- Nakładki kierunkowe przy przesuwaniu palcem -->
-          <div id="swipeHintRight" class="pointer-events-none absolute inset-0 z-20 rounded-[28px] border-4 border-emerald-400 bg-emerald-500/20 flex items-center justify-center opacity-0 transition-opacity">
-            <span class="px-5 py-2 rounded-2xl bg-emerald-500 text-white font-black text-xl tracking-wide shadow-xl -rotate-6">ZAPAMIĘTAŁEM ✓</span>
-          </div>
-          <div id="swipeHintLeft" class="pointer-events-none absolute inset-0 z-20 rounded-[28px] border-4 border-rose-500 bg-rose-500/20 flex items-center justify-center opacity-0 transition-opacity">
-            <span class="px-5 py-2 rounded-2xl bg-rose-600 text-white font-black text-xl tracking-wide shadow-xl rotate-6">POWTÓRZ ✕</span>
-          </div>
+        <!-- KONTENER AKTYWNEJ KARTY I PRZYCISKÓW -->
+        <div id="cardsDeckStage">
+          <!-- Interaktywna Fiszka 3D ze Swipe'owaniem (Pointer Events) -->
+          <div class="relative mb-3">
+            <!-- Nakładki kierunkowe przy przesuwaniu palcem -->
+            <div id="swipeHintRight" class="pointer-events-none absolute inset-0 z-20 rounded-[28px] border-4 border-emerald-400 bg-emerald-500/20 flex items-center justify-center opacity-0 transition-opacity">
+              <span class="px-5 py-2 rounded-2xl bg-emerald-500 text-white font-black text-xl tracking-wide shadow-xl -rotate-6">ZAPAMIĘTAŁEM ✓</span>
+            </div>
+            <div id="swipeHintLeft" class="pointer-events-none absolute inset-0 z-20 rounded-[28px] border-4 border-rose-500 bg-rose-500/20 flex items-center justify-center opacity-0 transition-opacity">
+              <span class="px-5 py-2 rounded-2xl bg-rose-600 text-white font-black text-xl tracking-wide shadow-xl rotate-6">POWTÓRZ ✕</span>
+            </div>
 
-          <div id="swipeShell" class="swipe-shell">
-            <div class="card-scene">
-              <div id="flashcard" class="flashcard-inner">
-                <!-- PRZÓD FISZKI -->
-                <div class="flashcard-face flashcard-front">
-                  <div id="cardFrontBadge" class="absolute top-4 left-4 text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-white/10 text-slate-300">
-                    Polski
+            <div id="swipeShell" class="swipe-shell">
+              <div class="card-scene">
+                <div id="flashcard" class="flashcard-inner">
+                  <!-- PRZÓD FISZKI -->
+                  <div class="flashcard-face flashcard-front">
+                    <div id="cardFrontBadge" class="absolute top-4 left-4 text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-white/10 text-slate-300">
+                      Polski
+                    </div>
+                    <button id="cardAudioFront" type="button" onclick="speakCurrentCard(event)" class="btn-arcade absolute top-3.5 right-3.5 w-10 h-10 rounded-full bg-indigo-500/25 border border-indigo-400/40 text-indigo-100 flex items-center justify-center text-lg z-10">🔊</button>
+                    <div id="cardFrontWord" class="text-2xl sm:text-3xl font-extrabold leading-snug text-white px-2">Ładowanie...</div>
+                    <div id="cardFrontSub" class="text-xs text-slate-400 mt-5 font-medium">Dotknij kartę, żeby zobaczyć tłumaczenie</div>
                   </div>
-                  <button id="cardAudioFront" type="button" onclick="speakCurrentCard(event)" class="btn-arcade absolute top-3.5 right-3.5 w-10 h-10 rounded-full bg-indigo-500/25 border border-indigo-400/40 text-indigo-100 flex items-center justify-center text-lg z-10">🔊</button>
-                  <div id="cardFrontWord" class="text-2xl sm:text-3xl font-extrabold leading-snug text-white px-2">Ładowanie...</div>
-                  <div id="cardFrontSub" class="text-xs text-slate-400 mt-5 font-medium">Dotknij kartę, żeby zobaczyć tłumaczenie</div>
-                </div>
 
-                <!-- TYŁ FISZKI (TŁUMACZENIE) -->
-                <div class="flashcard-face flashcard-back">
-                  <div id="cardBackBadge" class="absolute top-4 left-4 text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-indigo-500/30 text-indigo-200">
-                    Niemiecki
+                  <!-- TYŁ FISZKI (TŁUMACZENIE) -->
+                  <div class="flashcard-face flashcard-back">
+                    <div id="cardBackBadge" class="absolute top-4 left-4 text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-indigo-500/30 text-indigo-200">
+                      Niemiecki
+                    </div>
+                    <button id="cardAudioBack" type="button" onclick="speakCurrentCard(event)" class="btn-arcade absolute top-3.5 right-3.5 w-10 h-10 rounded-full bg-indigo-500/35 border border-indigo-400/50 text-white flex items-center justify-center text-lg z-10">🔊</button>
+                    <div id="cardBackWord" class="text-2xl sm:text-3xl font-extrabold leading-snug text-white px-2"></div>
+                    <div id="cardTipArea" class="mt-4 flex flex-wrap justify-center gap-1.5"></div>
+                    <div class="text-[11px] text-slate-400 mt-4 font-medium">Przesuń ⬅️ Powtórz • ➡️ Zapamiętałem</div>
                   </div>
-                  <button id="cardAudioBack" type="button" onclick="speakCurrentCard(event)" class="btn-arcade absolute top-3.5 right-3.5 w-10 h-10 rounded-full bg-indigo-500/35 border border-indigo-400/50 text-white flex items-center justify-center text-lg z-10">🔊</button>
-                  <div id="cardBackWord" class="text-2xl sm:text-3xl font-extrabold leading-snug text-white px-2"></div>
-                  <div id="cardTipArea" class="mt-4 flex flex-wrap justify-center gap-1.5"></div>
-                  <div class="text-[11px] text-slate-400 mt-4 font-medium">Przesuń ⬅️ Powtórz • ➡️ Zapamiętałem</div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- Główne przyciski: Nie zapamiętałem / Zapamiętałem -->
-        <div class="grid grid-cols-2 gap-3 mb-2.5">
-          <button type="button" onclick="gradeFlashcard(false)" class="btn-arcade py-4 px-3 rounded-2xl bg-gradient-to-br from-rose-500 to-rose-700 text-white font-extrabold text-sm sm:text-base shadow-lg shadow-rose-600/25 flex items-center justify-center gap-2">
-            <span>✕</span><span>Nie zapamiętałem</span>
-          </button>
-          <button type="button" onclick="gradeFlashcard(true)" class="btn-arcade py-4 px-3 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 text-white font-extrabold text-sm sm:text-base shadow-lg shadow-emerald-600/25 flex items-center justify-center gap-2">
-            <span>✓</span><span>Zapamiętałem</span>
-          </button>
-        </div>
+          <!-- Główne przyciski: Nie zapamiętałem / Zapamiętałem -->
+          <div class="grid grid-cols-2 gap-3 mb-2.5">
+            <button type="button" onclick="gradeFlashcard(false)" class="btn-arcade py-4 px-3 rounded-2xl bg-gradient-to-br from-rose-500 to-rose-700 text-white font-extrabold text-sm sm:text-base shadow-lg shadow-rose-600/25 flex items-center justify-center gap-2">
+              <span>✕</span><span>Nie zapamiętałem</span>
+            </button>
+            <button type="button" onclick="gradeFlashcard(true)" class="btn-arcade py-4 px-3 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 text-white font-extrabold text-sm sm:text-base shadow-lg shadow-emerald-600/25 flex items-center justify-center gap-2">
+              <span>✓</span><span>Zapamiętałem</span>
+            </button>
+          </div>
 
-        <!-- Pomocnicza nawigacja (Poprzednia / Odwróć / Następna) -->
-        <div class="grid grid-cols-3 gap-2 mb-3">
-          <button type="button" onclick="stepFlashcard(-1)" class="btn-arcade py-2.5 rounded-xl glass text-xs font-bold text-slate-300">← Poprzednia</button>
-          <button type="button" onclick="flipFlashcard()" class="btn-arcade py-2.5 rounded-xl glass text-xs font-extrabold text-indigo-300 border border-indigo-400/30">🔄 Odwróć</button>
-          <button type="button" onclick="stepFlashcard(1)" class="btn-arcade py-2.5 rounded-xl glass text-xs font-bold text-slate-300">Następna →</button>
-        </div>
+          <!-- Pomocnicza nawigacja (Poprzednia / Odwróć / Następna) -->
+          <div class="grid grid-cols-3 gap-2 mb-3">
+            <button type="button" onclick="stepFlashcard(-1)" class="btn-arcade py-2.5 rounded-xl glass text-xs font-bold text-slate-300">← Poprzednia</button>
+            <button type="button" onclick="flipFlashcard()" class="btn-arcade py-2.5 rounded-xl glass text-xs font-extrabold text-indigo-300 border border-indigo-400/30">🔄 Odwróć</button>
+            <button type="button" onclick="stepFlashcard(1)" class="btn-arcade py-2.5 rounded-xl glass text-xs font-bold text-slate-300">Następna →</button>
+          </div>
 
-        <!-- Legenda rodzajników -->
-        <div class="glass rounded-2xl px-4 py-2.5 flex items-center justify-between text-[11px] font-semibold text-slate-400">
-          <span>Rodzajniki:</span>
-          <div class="flex items-center gap-3">
-            <span><span class="der">der</span> (męski)</span>
-            <span><span class="die">die</span> (żeński/mn.)</span>
-            <span><span class="das">das</span> (nijaki)</span>
+          <!-- Legenda rodzajników -->
+          <div class="glass rounded-2xl px-4 py-2.5 flex items-center justify-between text-[11px] font-semibold text-slate-400">
+            <span>Rodzajniki:</span>
+            <div class="flex items-center gap-3">
+              <span><span class="der">der</span> (męski)</span>
+              <span><span class="die">die</span> (żeński/mn.)</span>
+              <span><span class="das">das</span> (nijaki)</span>
+            </div>
           </div>
         </div>
+
+        <!-- EKRAN PODSUMOWANIA RUNDY (POWTÓRKA TYLKO NIEZAPAMIĘTANYCH) -->
+        <div id="cardsRoundSummary" class="hidden glass rounded-3xl p-6 text-center animate-pop"></div>
       </div>
     </section>
 
@@ -1168,7 +1181,8 @@ function toggleDirection() {
   SFX.click();
   state.plToDe = !state.plToDe;
   saveState();
-  if (!document.getElementById("cardsStudyView").classList.contains("hidden")) {
+  if (!document.getElementById("cardsStudyView").classList.contains("hidden") &&
+      document.getElementById("cardsRoundSummary").classList.contains("hidden")) {
     renderFlashcard(true);
   }
   showToast(state.plToDe ? "Kierunek: Polski ➔ Niemiecki" : "Kierunek: Niemiecki ➔ Polski", "🔄");
@@ -1252,6 +1266,9 @@ let cardDeck = [];
 let cardIdx = 0;
 let isCardFlipped = false;
 let flipLockUntil = 0;
+let roundNumber = 1;
+let roundResults = {};
+let isFullReviewMode = false;
 
 function renderCurriculumTree() {
   const total = ALL_WORDS.length;
@@ -1355,22 +1372,79 @@ function toggleChapterCollapse(chId) {
   renderCurriculumTree();
 }
 
-function openFlashcardScope(scope, title) {
+/**
+ * Otwiera folder (lekcję / dział / powtórki).
+ * Automatycznie odfiltrowuje słówka już opanowane, żebyś uczył się tylko tych,
+ * których jeszcze nie pamiętasz (chyba że wszystkie są opanowane lub wymusisz forceAll).
+ */
+function openFlashcardScope(scope, title, forceAll = false) {
   SFX.click();
   activeCardScope = scope;
   activeCardTitle = title;
-  cardDeck = getWordsByScope(scope);
-  cardIdx = 0;
 
-  if (cardDeck.length === 0) {
+  const allInScope = getWordsByScope(scope);
+  if (allInScope.length === 0) {
     showToast("Ten folder jest pusty! Wszystkie słówka ogarnięte 🎉", "✨", "emerald");
     return;
   }
 
+  if (forceAll || scope === "hard" || scope === "unlearned") {
+    cardDeck = [...allInScope];
+    isFullReviewMode = forceAll;
+  } else {
+    const remaining = allInScope.filter(w => !state.mastered.includes(w.id));
+    if (remaining.length > 0 && remaining.length < allInScope.length) {
+      cardDeck = [...remaining];
+      isFullReviewMode = false;
+      showToast(`Wznawiam: zostało ${remaining.length} z ${allInScope.length} niezapamiętanych`, "🎯");
+    } else if (remaining.length === 0) {
+      cardDeck = [...allInScope];
+      isFullReviewMode = true;
+      showToast(`Wszystkie ${allInScope.length} opanowane! Tryb pełnej powtórki 🔄`, "👑", "emerald");
+    } else {
+      cardDeck = [...allInScope];
+      isFullReviewMode = false;
+    }
+  }
+
+  cardIdx = 0;
+  roundNumber = 1;
+  roundResults = {};
+
   document.getElementById("activeScopeTitle").innerText = title;
+  document.getElementById("cardsRoundSummary").classList.add("hidden");
+  document.getElementById("cardsDeckStage").classList.remove("hidden");
   document.getElementById("cardsFolderView").classList.add("hidden");
   document.getElementById("cardsStudyView").classList.remove("hidden");
   renderFlashcard(true);
+}
+
+/**
+ * Uruchamia kolejną rundę zawierającą WYŁĄCZNIE słówka niezapamiętane w poprzedniej rundzie.
+ */
+function startNextRoundWithMissed() {
+  SFX.click();
+  const missed = cardDeck.filter(w => roundResults[w.id] !== true);
+  if (missed.length === 0) {
+    restartFullScope();
+    return;
+  }
+
+  cardDeck = missed;
+  cardIdx = 0;
+  roundNumber++;
+  roundResults = {};
+
+  document.getElementById("cardsRoundSummary").classList.add("hidden");
+  document.getElementById("cardsDeckStage").classList.remove("hidden");
+  renderFlashcard(true);
+}
+
+/**
+ * Restartuje naukę ze wszystkimi słówkami z otwartej lekcji/działu.
+ */
+function restartFullScope() {
+  openFlashcardScope(activeCardScope, activeCardTitle, true);
 }
 
 function closeFlashcardStudy() {
@@ -1381,6 +1455,7 @@ function closeFlashcardStudy() {
 }
 
 function shuffleFlashcards() {
+  if (!document.getElementById("cardsRoundSummary").classList.contains("hidden")) return;
   SFX.flip();
   cardDeck.sort(() => Math.random() - 0.5);
   cardIdx = 0;
@@ -1389,15 +1464,29 @@ function shuffleFlashcards() {
 }
 
 function updateStudyStats() {
-  const scopeAll = getWordsByScope(activeCardScope);
   const totalInDeck = cardDeck.length;
-  const doneInDeck = cardDeck.filter(w => state.mastered.includes(w.id)).length;
+  const knownNow = cardDeck.filter(w => roundResults[w.id] === true).length;
+  const missedNow = cardDeck.filter(w => roundResults[w.id] === false).length;
+  const gradedCount = knownNow + missedNow;
+
   document.getElementById("studyCounterText").innerText =
-    totalInDeck > 0 ? `Fiszka ${cardIdx + 1} / ${totalInDeck}` : "Koniec folderu!";
-  document.getElementById("studyMasteredText").innerText =
-    `Opanowane: ${doneInDeck} / ${Math.max(totalInDeck, scopeAll.length)}`;
+    totalInDeck > 0 ? `Runda ${roundNumber} • Karta ${Math.min(cardIdx + 1, totalInDeck)} / ${totalInDeck}` : "Koniec rundy!";
+  document.getElementById("studyRoundStats").innerHTML =
+    `<span class="text-emerald-400">✓ ${knownNow}</span><span class="text-rose-400">✕ ${missedNow}</span>`;
   document.getElementById("studyProgressBar").style.width =
-    totalInDeck > 0 ? `${Math.round(((cardIdx + 1) / totalInDeck) * 100)}%` : "100%";
+    totalInDeck > 0 ? `${Math.round((gradedCount / totalInDeck) * 100)}%` : "100%";
+
+  // Pasek informujący, gdy przerabiamy tylko część niezapamiętanych słówek z lekcji
+  const partialBanner = document.getElementById("studyPartialBanner");
+  const allInScope = getWordsByScope(activeCardScope);
+  const isSpecialScope = activeCardScope === "hard" || activeCardScope === "unlearned";
+  if (!isSpecialScope && !isFullReviewMode && totalInDeck < allInScope.length) {
+    document.getElementById("studyPartialText").innerText =
+      `Tylko niezapamiętane (${totalInDeck} z ${allInScope.length})`;
+    partialBanner.classList.remove("hidden");
+  } else {
+    partialBanner.classList.add("hidden");
+  }
 }
 
 /**
@@ -1419,18 +1508,15 @@ function renderFlashcard(instantReset = true) {
   updateStudyStats();
 
   if (cardDeck.length === 0) {
-    document.getElementById("cardFrontBadge").innerText = "Gotowe 🎉";
-    document.getElementById("cardFrontWord").innerHTML = "Wszystko w tym folderze opanowane!";
-    document.getElementById("cardFrontSub").innerText = "Wróć do działów i wybierz kolejną lekcję";
-    document.getElementById("cardBackWord").innerHTML = "Świetna robota! 🔥";
-    document.getElementById("cardAudioFront").style.display = "none";
-    document.getElementById("cardAudioBack").style.display = "none";
-    document.getElementById("cardTipArea").innerHTML = "";
+    showRoundSummary();
     return;
   }
 
-  if (cardIdx < 0) cardIdx = cardDeck.length - 1;
-  if (cardIdx >= cardDeck.length) cardIdx = 0;
+  if (cardIdx < 0) cardIdx = 0;
+  if (cardIdx >= cardDeck.length) {
+    showRoundSummary();
+    return;
+  }
 
   const item = cardDeck[cardIdx];
   const statusMark = state.mastered.includes(item.id) ? " ✓" : state.hard.includes(item.id) ? " 🔥" : "";
@@ -1460,6 +1546,96 @@ function renderFlashcard(instantReset = true) {
 }
 
 /**
+ * Ekran podsumowania po przejściu wszystkich fiszek w bieżącej rundzie.
+ * Pozwala od razu powtórzyć wyłącznie słówka, których się nie pamiętało.
+ */
+function showRoundSummary() {
+  document.getElementById("cardsDeckStage").classList.add("hidden");
+  const summaryEl = document.getElementById("cardsRoundSummary");
+  summaryEl.classList.remove("hidden");
+
+  const knownCards = cardDeck.filter(w => roundResults[w.id] === true);
+  const missedCards = cardDeck.filter(w => roundResults[w.id] !== true);
+  const allInScope = getWordsByScope(activeCardScope);
+  const isSpecialScope = activeCardScope === "hard" || activeCardScope === "unlearned";
+
+  document.getElementById("studyCounterText").innerText = `Runda ${roundNumber} zakończona!`;
+  document.getElementById("studyRoundStats").innerHTML =
+    `<span class="text-emerald-400">✓ ${knownCards.length}</span><span class="text-rose-400">✕ ${missedCards.length}</span>`;
+  document.getElementById("studyProgressBar").style.width = "100%";
+  document.getElementById("studyPartialBanner").classList.add("hidden");
+
+  if (missedCards.length === 0) {
+    SFX.fanfare();
+    fireConfetti(85);
+    summaryEl.innerHTML = `
+      <div class="text-5xl mb-2">🎉</div>
+      <h3 class="text-2xl font-black text-white">Wszystko zapamiętane!</h3>
+      <p class="text-xs text-slate-300 mt-1 mb-5">
+        Runda ${roundNumber} zaliczona na 100% (${knownCards.length}/${cardDeck.length}). Tak trzymaj! 🔥
+      </p>
+      <div class="flex flex-col gap-2.5">
+        ${!isSpecialScope ? `
+          <button type="button" onclick="restartFullScope()" class="btn-arcade w-full py-3.5 rounded-2xl bg-gradient-to-r from-indigo-500 to-cyan-500 text-white font-extrabold text-sm">
+            🔄 Powtórz całą lekcję jeszcze raz (${allInScope.length})
+          </button>
+        ` : ""}
+        <button type="button" onclick="closeFlashcardStudy()" class="btn-arcade w-full py-3 rounded-2xl glass text-slate-200 font-bold text-sm">
+          ← Wróć do działów
+        </button>
+      </div>
+    `;
+    return;
+  }
+
+  const missedListHtml = missedCards.map(m => `
+    <div class="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/25 flex items-center justify-between gap-2 text-xs text-left">
+      <div class="min-w-0">
+        <span class="font-bold text-white">${m.pl}</span>
+        <span class="text-slate-400"> ➔ </span>
+        <span>${formatDe(m.de)}</span>
+      </div>
+      <button type="button" onclick="speakGerman('${m.de.replace(/'/g, "\\'")}')" class="text-base shrink-0">🔊</button>
+    </div>
+  `).join("");
+
+  summaryEl.innerHTML = `
+    <div class="text-4xl mb-2">🔁</div>
+    <h3 class="text-xl font-black text-white">Koniec rundy ${roundNumber}</h3>
+    <p class="text-xs text-slate-400 mt-0.5 mb-4">Zostało jeszcze <b>${missedCards.length}</b> słówek do wykucia!</p>
+
+    <div class="grid grid-cols-2 gap-2.5 mb-4">
+      <div class="rounded-2xl p-3 bg-emerald-500/15 border border-emerald-400/30">
+        <div class="text-2xl font-black text-emerald-400">${knownCards.length}</div>
+        <div class="text-[11px] font-bold text-emerald-200">Zapamiętane ✓</div>
+      </div>
+      <div class="rounded-2xl p-3 bg-rose-500/15 border border-rose-400/30">
+        <div class="text-2xl font-black text-rose-400">${missedCards.length}</div>
+        <div class="text-[11px] font-bold text-rose-200">Do powtórki ✕</div>
+      </div>
+    </div>
+
+    <div class="max-h-44 overflow-y-auto flex flex-col gap-1.5 mb-5">
+      ${missedListHtml}
+    </div>
+
+    <div class="flex flex-col gap-2.5">
+      <button type="button" onclick="startNextRoundWithMissed()" class="btn-arcade w-full py-4 rounded-2xl bg-gradient-to-r from-rose-500 to-orange-500 text-white font-black text-sm shadow-lg shadow-rose-600/25">
+        🔥 Powtórz tylko niezapamiętane (${missedCards.length})
+      </button>
+      ${!isSpecialScope ? `
+        <button type="button" onclick="restartFullScope()" class="btn-arcade w-full py-3 rounded-2xl glass text-slate-300 font-bold text-xs">
+          🔄 Zacznij całą lekcję od nowa (${allInScope.length})
+        </button>
+      ` : ""}
+      <button type="button" onclick="closeFlashcardStudy()" class="btn-arcade w-full py-2.5 rounded-2xl text-slate-400 font-bold text-xs">
+        ← Wróć do działów
+      </button>
+    </div>
+  `;
+}
+
+/**
  * Pojedyncze, zablokowane przed podwójnym wywołaniem odwrócenie fiszki.
  */
 function flipFlashcard() {
@@ -1486,13 +1662,22 @@ function speakCurrentCard(e) {
 function stepFlashcard(delta) {
   if (!cardDeck.length) return;
   SFX.click();
-  cardIdx = (cardIdx + delta + cardDeck.length) % cardDeck.length;
-  renderFlashcard(true);
+  if (delta < 0) {
+    if (cardIdx > 0) {
+      cardIdx--;
+      renderFlashcard(true);
+    }
+  } else {
+    cardIdx++;
+    if (cardIdx >= cardDeck.length) showRoundSummary();
+    else renderFlashcard(true);
+  }
 }
 
 function gradeFlashcard(known) {
-  if (!cardDeck.length) return;
+  if (!cardDeck.length || cardIdx >= cardDeck.length) return;
   const item = cardDeck[cardIdx];
+  roundResults[item.id] = known;
 
   if (known) {
     SFX.ok(2);
@@ -1504,22 +1689,19 @@ function gradeFlashcard(known) {
       awardXP(3);
     }
     state.hard = state.hard.filter(id => id !== item.id);
-
-    if (activeCardScope === "hard" || activeCardScope === "unlearned") {
-      cardDeck.splice(cardIdx, 1);
-      if (cardIdx >= cardDeck.length) cardIdx = 0;
-    } else {
-      cardIdx = (cardIdx + 1) % cardDeck.length;
-    }
   } else {
     SFX.bad();
     if (!state.hard.includes(item.id)) state.hard.push(item.id);
     state.mastered = state.mastered.filter(id => id !== item.id);
-    cardIdx = (cardIdx + 1) % cardDeck.length;
   }
 
   saveState();
-  renderFlashcard(true);
+  cardIdx++;
+  if (cardIdx >= cardDeck.length) {
+    showRoundSummary();
+  } else {
+    renderFlashcard(true);
+  }
 }
 
 /**
